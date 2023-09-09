@@ -20,60 +20,9 @@ export default observer(() => {
 
   return (
     <div className="container">
-      <div style={{ padding: '4px', border: '1px solid black' }}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <select
-              onChange={(e) => msg.changeChannel(e.target.value)}
-              value={msg.activeChannel}
-            >
-              {msg.channels.map((channel) => (
-                <option key={channel.name} value={channel.name}>
-                  {channel.name} - {channel.memberCount} members
-                </option>
-              ))}
-            </select>
-            <div style={{ width: '4px' }} />
-            <a href={transcriptUrl.toString()} target="_blank">
-              transcript
-            </a>
-          </div>
-          <Button onClick={() => setShowingCreatePopup(true)}>
-            Create Group
-          </Button>
-        </div>
-        <div style={{ height: '4px' }} />
-        <Compose />
+      <div>
+        Chess!
       </div>
-      {ui.isMobile ? (
-        <>
-          {msg.messages.map((m) => (
-            <MessageCell key={m._id} message={m} />
-          ))}
-        </>
-      ) : (
-        <div
-          style={{
-            maxHeight: '50vh',
-            display: 'flex',
-            flexDirection: 'column',
-            flexWrap: 'wrap',
-            alignItems: 'flex-start',
-            maxWidth: '100vw',
-            overflow: 'hidden',
-          }}
-        >
-          {msg.messages.map((m) => (
-            <MessageCell key={m._id} message={m} />
-          ))}
-        </div>
-      )}
       {showingCreatePopup ? (
         <CreateGroup onDone={() => setShowingCreatePopup(false)} />
       ) : null}
