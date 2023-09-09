@@ -3,14 +3,14 @@ import { ethers } from 'ethers'
 import { Identity } from '@semaphore-protocol/identity'
 import { UserState, schema } from '@unirep/core'
 import { provider, UNIREP_ADDRESS, APP_ADDRESS, SERVER } from '../config'
-// import prover from './prover'
+import prover from './prover'
 import { fromRpcSig, hashPersonalMessage, ecrecover } from '@ethereumjs/util'
 import BN from 'bn.js'
 import poseidon from 'poseidon-lite'
 import { TypedDataUtils } from '@metamask/eth-sig-util'
 import { IndexedDBConnector, MemoryConnector } from 'anondb/web'
 import { constructSchema } from 'anondb/types'
-import prover from '@unirep/circuits/provers/web'
+// import prover from '@unirep/circuits/provers/web'
 
 export default class Auth {
   addresses = []
@@ -51,10 +51,10 @@ export default class Auth {
       attesterId: APP_ADDRESS,
       id: identity,
     })
+    this.userState = userState
     await userState.sync.start()
     await userState.waitForSync()
     this.hasSignedUp = await userState.hasSignedUp()
-    this.userState = userState
     this.watchTransition()
   }
 
@@ -92,174 +92,33 @@ export default class Auth {
       publicSignals: signupProof.publicSignals.map(v => v.toString()),
       proof: signupProof.proof.map(v => v.toString()),
     })
-    console.log(data)
     await provider.waitForTransaction(data.hash)
     await this.userState.waitForSync()
     this.hasSignedUp = await this.userState.hasSignedUp()
   }
 
-  async getSignupSignature() {
-    if (!window.ethereum) throw new Error('No injected window.ethereum')
-    if (!this.id) throw new Error('No identity loaded')
-    if (!this.address) throw new Error('No address loaded')
-
-    const CHAIN_ID = 421613
-
-    const message = {
-      domain: {
-        chainId: CHAIN_ID, // arb goerli
-        name: 'zketh',
-        verifyingContract: APP_ADDRESS,
-        version: '0',
-      },
-      message: {
-        // whatami: '>zketh signup proof<',
-        identity: '0x' + this.id.genIdentityCommitment().toString(16),
-      },
-      primaryType: 'SemaphoreKey',
-      types: {
-        SemaphoreKey: [
-          // {
-          //   name: 'whatami',
-          //   type: 'string',
-          // },
-          {
-            name: 'identity',
-            type: 'uint256',
-          },
-        ],
-        EIP712Domain: [
-          { name: 'name', type: 'string' },
-          { name: 'version', type: 'string' },
-          { name: 'chainId', type: 'uint256' },
-          { name: 'verifyingContract', type: 'address' },
-        ],
-      },
-    }
-
-    try {
-      await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x' + BigInt(CHAIN_ID).toString(16) }],
-      })
-    } catch (err) {
-      if (err.code === 4902) {
-        await window.ethereum.request({
-          method: 'wallet_addEthereumChain',
-          params: [
-            {
-              chainId: '0x' + BigInt(CHAIN_ID).toString(16),
-              chainName: 'Arbitrum Goerli',
-              nativeCurrency: {
-                name: 'arbitrum eth',
-                symbol: 'AGOR',
-                decimals: 18,
-              },
-              rpcUrls: ['https://arbitrum.goerli.unirep.io'],
-            },
-          ],
-        })
-      } else {
-        throw err
-      }
-    }
-
-    const sig = await window.ethereum.request({
-      method: 'eth_signTypedData_v4',
-      params: [this.address, JSON.stringify(message)],
+  async proveElo() {
+    // first generate a UST proof
+    const currentEpoch = this.userState.sync.calcCurrentEpoch()
+    const toEpoch = currentEpoch + 1
+    const ustProof = await this.userState.genUserStateTransitionProof({
+      toEpoch,
     })
-    const hash = ethers.utils.keccak256(sig)
-    console.log(
-      BigInt(
-        '0x' +
-          Buffer.from(TypedDataUtils.eip712Hash(message, 'V4')).toString('hex')
-      ).toString()
-    )
-    const sigHash = BigInt(hash) >> BigInt(6)
-    return {
-      sig,
-      sigHash,
-      msgHash:
-        '0x' +
-        Buffer.from(TypedDataUtils.eip712Hash(message, 'V4')).toString('hex'),
+    // take the state tree leaf and the latest data
+    const { stateTreeLeaf } = ustProof
+    const data = await this.userState.getData()
+    // build the elo proof using the resuting state tree leaf
+    const id = localStorage.getItem('id')
+    const identity = new Identity(id)
+    const circuitInputs = {
+      data,
+      epoch: toEpoch,
+      attester_id: APP_ADDRESS,
+      identity_secret: identity.secret,
     }
+    const { proof, publicSignals } = await prover.genProofAndPublicSignals('proveElo', circuitInputs)
+    // now we have the UST proof and elo proof
+    // send them to the server to find a game
   }
 
-  async getProofSignature(address) {
-    if (!window.ethereum) throw new Error('No injected window.ethereum')
-
-    const CHAIN_ID = 421613
-
-    const message = {
-      domain: {
-        chainId: CHAIN_ID, // arb goerli
-        name: 'zketh',
-        verifyingContract: APP_ADDRESS,
-        version: '0',
-      },
-      message: {
-        whatami: '>zketh unirep identity<',
-        warning: 'do not sign outside of zketh.io',
-      },
-      primaryType: 'SemaphoreKey',
-      types: {
-        SemaphoreKey: [
-          {
-            name: 'whatami',
-            type: 'string',
-          },
-          {
-            name: 'warning',
-            type: 'string',
-          },
-        ],
-      },
-    }
-
-    this.hash = TypedDataUtils.eip712Hash(message, 'V4')
-
-    try {
-      await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x' + BigInt(CHAIN_ID).toString(16) }],
-      })
-    } catch (err) {
-      if (err.code === 4902) {
-        await window.ethereum.request({
-          method: 'wallet_addEthereumChain',
-          params: [
-            {
-              chainId: '0x' + BigInt(CHAIN_ID).toString(16),
-              chainName: 'Arbitrum Goerli',
-              nativeCurrency: {
-                name: 'arbitrum eth',
-                symbol: 'AGOR',
-                decimals: 18,
-              },
-              rpcUrls: ['https://arbitrum.goerli.unirep.io'],
-            },
-          ],
-        })
-      } else {
-        throw err
-      }
-    }
-
-    const sig = await window.ethereum.request({
-      method: 'eth_signTypedData_v4',
-      params: [address, JSON.stringify(message)],
-    })
-    this.address = address
-    this.sig = sig
-    const {
-      default: { sha512 },
-    } = await import(/* webpackPrefetch: true */ 'js-sha512')
-    const h = sha512(sig).padStart(128, '0')
-    const nullifier = BigInt('0x' + h.slice(0, 64)) >> BigInt(6)
-    const trapdoor = BigInt('0x' + h.slice(64)) >> BigInt(6)
-    this.id = new ZkIdentity(0)
-    this.id._identityTrapdoor = trapdoor
-    this.id._identityNullifier = nullifier
-    this.id._secret = [nullifier, trapdoor]
-  }
 }

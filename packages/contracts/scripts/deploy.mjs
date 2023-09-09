@@ -26,7 +26,7 @@ const ZKEth = require('../abi/ZKEth.json')
 
 const [signer] = await ethers.getSigners()
 const unirep = await deployUnirep(signer, {
-  STATE_TREE_DEPTH: 20,
+  // STATE_TREE_DEPTH: 20,
 })
 
 const SignupNonAnonVerifier = await ethers.getContractFactory(
