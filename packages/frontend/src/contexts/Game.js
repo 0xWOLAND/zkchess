@@ -21,6 +21,8 @@ export default class Game {
       async ({ data: { gameId, white, black } }) => {
         if (this.playerId != white && this.playerId != black) return;
 
+        if (playerId == "test") return;
+
         const { data } = await this.state.msg.client.send("game.load", {
           gameId,
         });
