@@ -14,29 +14,14 @@ export default class Game {
     this.load();
   }
 
-  async load() {}
-
-  async loadGames() {
-    const { data } = await this.state.msg.client.send("game.list");
-    this.activeGames = data;
-  }
-
-  async joinGame() {
-    const response = await this.state.msg.client.send("queue.check", {
-      playerId: "this shouldn't exist in db",
-    });
-    const player = response.data;
-    if (player) {
-      console.log("player already in queue -- ", player);
-      return;
-    }
-
-    this.playerId = await this.state.msg.client.send("user.signup");
-
+  async load() {
+    await setTimeout(1);
     this.state.msg.client.listen(
       "newGame",
       async ({ data: { gameId, white, black } }) => {
         if (this.playerId != white && this.playerId != black) return;
+
+        if (playerId == "test") return;
 
         const { data } = await this.state.msg.client.send("game.load", {
           gameId,
@@ -49,6 +34,15 @@ export default class Game {
         });
       }
     );
+  }
+
+  async loadGames() {
+    const { data } = await this.state.msg.client.send("game.list");
+    this.activeGames = data;
+  }
+
+  async joinGame() {
+    this.playerId = await this.state.msg.client.send("user.signup");
   }
 
   async playMove(move) {
