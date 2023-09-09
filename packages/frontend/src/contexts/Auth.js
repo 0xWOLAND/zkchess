@@ -119,6 +119,8 @@ export default class Auth {
     const { proof, publicSignals } = await prover.genProofAndPublicSignals('proveElo', circuitInputs)
     // now we have the UST proof and elo proof
     // send them to the server to find a game
+    console.log(proof)
+    return { ustProof, eloProof: { proof, publicSignals } }
   }
 
 }

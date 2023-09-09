@@ -53,12 +53,10 @@ export default [
       {
         name: "player_w",
         type: "String",
-        default: "",
       },
       {
         name: "player_b",
         type: "String",
-        default: "",
       },
       // 'w' for white victory, 'b' for black victory, 'd' for draw
       ["outcome", "String", { optional: true }],

@@ -6,9 +6,8 @@ import { Chessboard } from "kokopu-react";
 import { Position } from "kokopu";
 
 export default observer(() => {
-  const { ui, msg, game, matchQueue } = React.useContext(state);
+  const { ui, msg, game } = React.useContext(state);
 
-  setInterval(() => matchQueue.createGames(), 1000);
 
   return (
     <div>
@@ -16,7 +15,7 @@ export default observer(() => {
       <div>
         <button
           onClick={() => {
-            game.joinGame();
+            game.joinQueue();
           }}
         >
           Join game

@@ -5,6 +5,7 @@ import express from "express";
 import especial from "especial";
 import { provider, PRIVATE_KEY, dbpath } from "./config.mjs";
 import TransactionManager from "./singletons/TransactionManager.mjs";
+import PlayerQueue from "./singletons/PlayerQueue.mjs";
 import synchronizer from "./singletons/AppSynchronizer.mjs";
 import schema from "./schema.mjs";
 import { SQLiteConnector } from "anondb/node.js";
@@ -45,6 +46,8 @@ let wsApp, httpApp;
   // app.use('/channels', express.static(CHANNEL_PATH))
   httpApp = app;
 }
+
+PlayerQueue.configure(db, wsApp)
 
 const state = { app: httpApp, wsApp, db, synchronizer };
 await importFunctionDirectory("routes", state);

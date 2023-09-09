@@ -6,7 +6,6 @@ export default class Game {
   activeGame = null;
   position = null;
   activeGames = [];
-  playerId = "test";
 
   constructor(state) {
     makeAutoObservable(this);
@@ -15,22 +14,17 @@ export default class Game {
   }
 
   async load() {
-    await new Promise(() => setTimeout(r, 10))
+    await new Promise((r) => setTimeout(r, 10))
     this.state.msg.client.listen(
       "newGame",
       async ({ data: { gameId, white, black } }) => {
         if (this.playerId != white && this.playerId != black) return;
-
-        if (playerId == "test") return;
-
         const { data } = await this.state.msg.client.send("game.load", {
           gameId,
         });
-        this._activeGame = new Position(data.position);
-        this.activeGameId = data._id;
+        this.activeGame = data
         this.state.msg.client.listen(gameId, ({ data }) => {
-          this._activeGame = new Position(data.position);
-          this.position = this._activeGame.fen();
+          this.activeGame = data
         });
       }
     );
@@ -42,8 +36,18 @@ export default class Game {
   }
 
   async joinQueue() {
-    // make proofs/send
-    // set playerId here
+    const { ustProof, eloProof } = await this.state.auth.proveElo()
+    this.playerId = ustProof.publicSignals[1].toString()
+    await this.state.msg.client.send("queue.join", {
+      ustProof: {
+        publicSignals: ustProof.publicSignals.map(v => v.toString()),
+        proof: ustProof.proof.map(v => v.toString()),
+      },
+      eloProof: {
+        // publicSignals: eloProof.publicSignals.map(v => v.toString()),
+        // proof: eloProof.proof.map(v => v.toString()),
+      }
+    });
   }
 
   async playMove(move) {

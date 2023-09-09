@@ -4,7 +4,6 @@ import User from "./User";
 import Auth from "./Auth";
 import Message from "./Message";
 import Game from "./Game";
-import MatchQueue from "./MatchQueue";
 
 const state = {};
 
@@ -13,7 +12,6 @@ const user = new User(state);
 const msg = new Message(state);
 const auth = new Auth(state);
 const game = new Game(state);
-const matchQueue = new MatchQueue(state);
 
 Object.assign(state, {
   ui,
@@ -21,8 +19,6 @@ Object.assign(state, {
   msg,
   auth,
   game,
-  matchQueue,
 });
-console.log(state);
 
 export default createContext(state);
