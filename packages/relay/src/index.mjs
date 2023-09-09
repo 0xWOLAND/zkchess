@@ -3,20 +3,18 @@ import path from 'path'
 import fs from 'fs'
 import express from 'express'
 import especial from 'especial'
-import { provider, PRIVATE_KEY, dbpath, CHANNEL_PATH } from './config.mjs'
+import { provider, PRIVATE_KEY, dbpath } from './config.mjs'
 import TransactionManager from './singletons/TransactionManager.mjs'
 import synchronizer from './singletons/AppSynchronizer.mjs'
 import HashchainManager from './singletons/HashchainManager.mjs'
 import schema from './schema.mjs'
 import { SQLiteConnector } from 'anondb/node.js'
 import { IncrementalMerkleTree } from '@unirep/utils'
-import channelInit from './channels.mjs'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 // the application db
 const db = await SQLiteConnector.create(schema, dbpath('app.db'))
-await channelInit(db)
 
 synchronizer.on('StateTreeLeaf', async ({ decodedData }) => {
   const epoch = Number(decodedData.epoch)
@@ -49,8 +47,6 @@ await synchronizer.start()
 TransactionManager.configure(PRIVATE_KEY, provider, synchronizer._db)
 await TransactionManager.start()
 
-HashchainManager.startDaemon()
-
 // initialize websocket server
 let wsApp, httpApp
 {
@@ -73,8 +69,8 @@ let wsApp, httpApp
   })
   app.use(express.json())
   app.use('/build', express.static(path.join(__dirname, '../keys')))
-  app.use('/data', express.static(path.join(__dirname, '../data')))
-  app.use('/channels', express.static(CHANNEL_PATH))
+  // app.use('/data', express.static(path.join(__dirname, '../data')))
+  // app.use('/channels', express.static(CHANNEL_PATH))
   httpApp = app
 }
 

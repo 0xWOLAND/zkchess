@@ -43,31 +43,6 @@ class HashchainManager {
       }
     }
   }
-
-  async processEpochKeys(epoch) {
-    // first check if there is an unprocessed hashchain
-    const leafPreimages = await synchronizer.genEpochTreePreimages(epoch)
-    const { circuitInputs } = await BuildOrderedTree.buildInputsForLeaves(
-      leafPreimages
-    )
-    const r = await synchronizer.prover.genProofAndPublicSignals(
-      Circuit.buildOrderedTree,
-      stringifyBigInts(circuitInputs)
-    )
-    const { publicSignals, proof } = new BuildOrderedTree(
-      r.publicSignals,
-      r.proof
-    )
-    const calldata = synchronizer.unirepContract.interface.encodeFunctionData(
-      'sealEpoch',
-      [epoch, synchronizer.attesterId, publicSignals, proof]
-    )
-    const hash = await TransactionManager.queueTransaction(
-      synchronizer.unirepContract.address,
-      calldata
-    )
-    await synchronizer.provider.waitForTransaction(hash)
-  }
 }
 
 export default new HashchainManager()

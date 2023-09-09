@@ -2,9 +2,10 @@ import { ethers } from 'ethers'
 import fs from 'fs/promises'
 import os from 'os'
 import path from 'path'
-import _config from '../../../config.js'
+// import _config from '../../../config.js'
 import { config } from 'dotenv'
 config()
+const _config = {}
 
 export const UNIREP_ADDRESS =
   process.env.UNIREP_ADDRESS ?? _config.UNIREP_ADDRESS
@@ -20,12 +21,6 @@ if (!stat.isDirectory()) {
   throw new Error('DB_PATH is not a directory')
 }
 export const dbpath = (name) => path.join(DB_PATH, name)
-
-export const CHANNEL_PATH = path.join(DB_PATH, 'channels')
-try {
-  await fs.mkdir(CHANNEL_PATH)
-} catch (err) {}
-export const channelpath = (name) => path.join(CHANNEL_PATH, name)
 
 export const provider = ETH_PROVIDER_URL.startsWith('http')
   ? new ethers.providers.JsonRpcProvider(ETH_PROVIDER_URL)

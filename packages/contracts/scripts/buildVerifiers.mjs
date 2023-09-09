@@ -23,7 +23,7 @@ try {
 }
 
 const circuits = {
-  signupWithAddress: 0,
+  // signupWithAddress: 0,
   signupNonAnon: 1,
 }
 

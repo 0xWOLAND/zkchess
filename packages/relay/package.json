@@ -11,7 +11,7 @@
     "keys": "sh scripts/loadKeys.sh"
   },
   "dependencies": {
-    "@unirep/core": "2.0.0-beta-1",
+    "@unirep/core": "2.0.0-beta-4",
     "@zketh/contracts": "1.0.0",
     "anondb": "^0.0.13",
     "dotenv": "^16.0.3",

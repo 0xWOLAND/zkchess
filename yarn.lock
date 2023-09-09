@@ -388,7 +388,7 @@
     "@ethersproject/bytes" "^5.7.0"
     "@ethersproject/properties" "^5.7.0"
 
-"@ethersproject/bignumber@5.7.0", "@ethersproject/bignumber@^5.7.0":
+"@ethersproject/bignumber@5.7.0", "@ethersproject/bignumber@^5.5.0", "@ethersproject/bignumber@^5.7.0":
   version "5.7.0"
   resolved "https://registry.yarnpkg.com/@ethersproject/bignumber/-/bignumber-5.7.0.tgz#e2f03837f268ba655ffba03a57853e18a18dc9c2"
   integrity sha512-n1CAdIHRWjSucQO3MC1zPSVgV/6dy/fjL9pMrPP9peL+QxEg9wOsVqwD4+818B6LUEtaXzVHQiuivzRoxPxUGw==
@@ -540,7 +540,7 @@
     bech32 "1.1.4"
     ws "7.4.6"
 
-"@ethersproject/random@5.7.0", "@ethersproject/random@^5.7.0":
+"@ethersproject/random@5.7.0", "@ethersproject/random@^5.5.1", "@ethersproject/random@^5.7.0":
   version "5.7.0"
   resolved "https://registry.yarnpkg.com/@ethersproject/random/-/random-5.7.0.tgz#af19dcbc2484aae078bb03656ec05df66253280c"
   integrity sha512-19WjScqRA8IIeWclFme75VMXSBvi4e6InrUNuaR4s5pTF2qNhcGdCUwdxUVGtDDqC00sDLCO93jPQoDUH4HVmQ==
@@ -589,7 +589,7 @@
     "@ethersproject/sha2" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
-"@ethersproject/strings@5.7.0", "@ethersproject/strings@^5.7.0":
+"@ethersproject/strings@5.7.0", "@ethersproject/strings@^5.6.1", "@ethersproject/strings@^5.7.0":
   version "5.7.0"
   resolved "https://registry.yarnpkg.com/@ethersproject/strings/-/strings-5.7.0.tgz#54c9d2a7c57ae8f1205c88a9d3a56471e14d5ed2"
   integrity sha512-/9nu+lj0YswRNSH0NXYqrh8775XNyEdUQAuf3f+SmOrnVewcJ5SBNAjF7lpgehKi4abvNNXyf+HX86czCdJ8Mg==
@@ -2062,6 +2062,17 @@
     "@noble/hashes" "~1.2.0"
     "@scure/base" "~1.1.0"
 
+"@semaphore-protocol/identity@^3.5.0":
+  version "3.11.0"
+  resolved "https://registry.yarnpkg.com/@semaphore-protocol/identity/-/identity-3.11.0.tgz#32a6f7d6ae6dab529b4b08ae32055219f46ebe07"
+  integrity sha512-z82ZyZuUeq2+l9/cnCB/sCYdPOb0TQRl0S4w1BdnsAGBCRaE8lt8+fprSdEGc0ay0kCZIiIp0iLWB5d9Frf+Ug==
+  dependencies:
+    "@ethersproject/bignumber" "^5.5.0"
+    "@ethersproject/keccak256" "^5.7.0"
+    "@ethersproject/random" "^5.5.1"
+    "@ethersproject/strings" "^5.6.1"
+    js-sha512 "^0.8.0"
+
 "@sentry/core@5.30.0":
   version "5.30.0"
   resolved "https://registry.yarnpkg.com/@sentry/core/-/core-5.30.0.tgz#6b203664f69e75106ee8b5a2fe1d717379b331f3"
@@ -2411,6 +2422,14 @@
     "@unirep/utils" "2.0.0-beta-1"
     snarkjs "^0.5.0"
 
+"@unirep/circuits@2.0.0-beta-4":
+  version "2.0.0-beta-4"
+  resolved "https://registry.yarnpkg.com/@unirep/circuits/-/circuits-2.0.0-beta-4.tgz#7ae6d680969744a0b323b93d4f45487966e4fefb"
+  integrity sha512-wQAaW0H2XNIgdFI74gZ+hiAPd4Yy6ITRSCwp9xLGZz2k72BP5mM2y2OsXSGi4qx+PTHwrFkuFUijAfc3WfwkZg==
+  dependencies:
+    "@unirep/utils" "2.0.0-beta-4"
+    snarkjs "^0.5.0"
+
 "@unirep/contracts@2.0.0-beta-1":
   version "2.0.0-beta-1"
   resolved "https://registry.yarnpkg.com/@unirep/contracts/-/contracts-2.0.0-beta-1.tgz#f0b6dc41932fbf9fe56b889612f5f80834154322"
@@ -2422,6 +2441,19 @@
     circomlibjs "0.0.8"
     ethers "^5.6.8"
     poseidon-solidity "^0.0.3"
+    solc "^0.8.16"
+
+"@unirep/contracts@2.0.0-beta-4":
+  version "2.0.0-beta-4"
+  resolved "https://registry.yarnpkg.com/@unirep/contracts/-/contracts-2.0.0-beta-4.tgz#21a2f508b7041bd90601a56879865c7595ec899b"
+  integrity sha512-Gt2T7L0XOs2grgn9OR/HyRwY+k8ir1hLYXjvnVxdutNJVI5FkiJqXEQlv26W1oKmT6s462DKTp5M4JvrPQhYFQ==
+  dependencies:
+    "@unirep/circuits" "2.0.0-beta-4"
+    "@unirep/utils" "2.0.0-beta-4"
+    "@zk-kit/incremental-merkle-tree.sol" "^1.4.0"
+    ethers "^5.6.8"
+    global-factory "^0.0.0"
+    poseidon-solidity "^0.0.5"
     solc "^0.8.16"
 
 "@unirep/core@2.0.0-beta-1":
@@ -2437,6 +2469,20 @@
     ethers "^5.6.8"
     nanoid "3"
 
+"@unirep/core@2.0.0-beta-4":
+  version "2.0.0-beta-4"
+  resolved "https://registry.yarnpkg.com/@unirep/core/-/core-2.0.0-beta-4.tgz#8b655861b4911c0ae9888c2a1f5b5c4d9a38164e"
+  integrity sha512-gWwusC6dLH990aH8uFb4KkE4owAeMgj7iQXQx/W++GhZRxvQPh7ucOa7qJgW0vwdSJC/LYaRtSkm5puNAwdZ0g==
+  dependencies:
+    "@semaphore-protocol/identity" "^3.5.0"
+    "@unirep/circuits" "2.0.0-beta-4"
+    "@unirep/contracts" "2.0.0-beta-4"
+    "@unirep/utils" "2.0.0-beta-4"
+    anondb "^0.0.16"
+    async-lock "^1.4.0"
+    ethers "^5.6.8"
+    nanoid "3"
+
 "@unirep/utils@2.0.0-beta-1":
   version "2.0.0-beta-1"
   resolved "https://registry.yarnpkg.com/@unirep/utils/-/utils-2.0.0-beta-1.tgz#e18f96bcc6f693d7dbf5b0592a1e4a622459469f"
@@ -2445,6 +2491,15 @@
     "@zk-kit/incremental-merkle-tree" "^0.4.3"
     maci-crypto "^0.9.1"
     poseidon-lite "^0.0.2"
+
+"@unirep/utils@2.0.0-beta-4":
+  version "2.0.0-beta-4"
+  resolved "https://registry.yarnpkg.com/@unirep/utils/-/utils-2.0.0-beta-4.tgz#cb627c4f208331f919884f0f4e063b70506cf4a0"
+  integrity sha512-ldv5ObkYWbcuGqokzJjHJtrx/5/2H3r6opEwa6T41e8ualbn+bvylLXFr6L0L5oJlZFXPdFiAktxN3iy7eNoxQ==
+  dependencies:
+    "@zk-kit/incremental-merkle-tree" "^1.1.0"
+    poseidon-lite "^0.2.0"
+    randomf "^0.0.3"
 
 "@webassemblyjs/ast@1.11.1":
   version "1.11.1"
@@ -2612,10 +2667,22 @@
   resolved "https://registry.yarnpkg.com/@zk-kit/incremental-merkle-tree.sol/-/incremental-merkle-tree.sol-1.3.1.tgz#335442c29adeba7477f35deb33fa643faaf81b63"
   integrity sha512-KdGPoEooSX5MJH7oBE7MCRt/Aej+6n7U6v81w9fIzorSbykNuKH5lMbjkDAsis5xhp2qBC+y1V0xYBA2SNMt8A==
 
+"@zk-kit/incremental-merkle-tree.sol@^1.4.0":
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/@zk-kit/incremental-merkle-tree.sol/-/incremental-merkle-tree.sol-1.7.0.tgz#9d6166c2d84b8bb4fae709c7d729aae6c8c6474f"
+  integrity sha512-1HF5HEQ2GVKYBAKeNlhiQ7Fb7g2x6iBQ/bBovxBQYx8xuJlD8jPJU/fn2foMVI42+BQtz2V/V4tVtn+0uNL1Rg==
+  dependencies:
+    poseidon-solidity "0.0.4"
+
 "@zk-kit/incremental-merkle-tree@^0.4.3":
   version "0.4.3"
   resolved "https://registry.yarnpkg.com/@zk-kit/incremental-merkle-tree/-/incremental-merkle-tree-0.4.3.tgz#197f72102d35dd9c546a6a432896d6d6f6de05f4"
   integrity sha512-2qHfrJXtPx8/UmF0wFAUr4VqCLr3J/P859fk/e3fwKLUnf3baeIUAO6inY4wrh0NGy4bzpKUWYjDph0yTbPz6A==
+
+"@zk-kit/incremental-merkle-tree@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@zk-kit/incremental-merkle-tree/-/incremental-merkle-tree-1.1.0.tgz#6b0ccce56f9e05ccf73f7ea4fa746d5ef7d24b1d"
+  integrity sha512-WnNR/GQse3lX8zOHMU8zwhgX8u3qPoul8w4GjJ0WDHq+VGJimo7EGheRZ/ILeBQabnlzAerdv3vBqYBehBeoKA==
 
 "@zkochan/js-yaml@0.0.6":
   version "0.0.6"
@@ -5614,6 +5681,14 @@ glob@^8.0.1:
     minimatch "^5.0.1"
     once "^1.3.0"
 
+global-factory@^0.0.0:
+  version "0.0.0"
+  resolved "https://registry.yarnpkg.com/global-factory/-/global-factory-0.0.0.tgz#707927bb18f1919b3001e8fc364a66d18ccd0979"
+  integrity sha512-ICxRVNqj7t/MhVLB2gyrIrKRs1E+zCCfRw1myuPrzwrl9qoBMSMMxn8lES64niqZ7Y+P7cMWH6H7NIRxYsaW6g==
+  dependencies:
+    "@ethersproject/address" "^5.7.0"
+    "@ethersproject/keccak256" "^5.7.0"
+
 global@~4.4.0:
   version "4.4.0"
   resolved "https://registry.yarnpkg.com/global/-/global-4.4.0.tgz#3e7b105179006a323ed71aafca3e9c57a5cc6406"
@@ -8234,10 +8309,25 @@ poseidon-lite@^0.0.2:
   resolved "https://registry.yarnpkg.com/poseidon-lite/-/poseidon-lite-0.0.2.tgz#dc1a7c57f9393a586c5c9efc21b72b77e2c1acb6"
   integrity sha512-bGdDPTOQkJbBjbtSEWc3gY+YhqlGTxGlZ8041F8TGGg5QyGGp1Cfs4b8AEnFFjHbkPg6WdWXUgEjU1GKOKWAPw==
 
+poseidon-lite@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/poseidon-lite/-/poseidon-lite-0.2.0.tgz#dbc242ebd9c10c32d507a533fa497231d168fd72"
+  integrity sha512-vivDZnGmz8W4G/GzVA72PXkfYStjilu83rjjUfpL4PueKcC8nfX6hCPh2XhoC5FBgC6y0TA3YuUeUo5YCcNoig==
+
+poseidon-solidity@0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/poseidon-solidity/-/poseidon-solidity-0.0.4.tgz#fb80181fb2b17756d98449d54e4cc2ecd8daa4d0"
+  integrity sha512-+S6jlCXKARCFbw0MMOjfR8gcKUVeB8F3Vu5S+1zDvb8N8cVjiW6WsP9kPqNaZCxjRKakt6LKVRPdA39YbpWfdg==
+
 poseidon-solidity@^0.0.3:
   version "0.0.3"
   resolved "https://registry.yarnpkg.com/poseidon-solidity/-/poseidon-solidity-0.0.3.tgz#8521eaad3abb56c711372f7a4a1ba82ba0deaa12"
   integrity sha512-8eCb5Wz/fhgRK1yC1KZBafZmZC3STvLe7DQMpL9471gKtcgkjsCLN7HoTjDPI9UKxsFzUmXZxaEOrWfvOxXP/w==
+
+poseidon-solidity@^0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/poseidon-solidity/-/poseidon-solidity-0.0.5.tgz#3f93e01cfe25f6d2f2fac49734fbb00961b84655"
+  integrity sha512-NzrvSwHzvZgT4hvg2GyGqeR+UOU/eLSEt4wAoXEua+VaR7NTKKwx1X9bPlh1VMBEVEno+IWvkRBbidFGzTeAqQ==
 
 postcss-modules-extract-imports@^3.0.0:
   version "3.0.0"
@@ -8493,6 +8583,11 @@ randombytes@^2.0.0, randombytes@^2.0.1, randombytes@^2.0.5, randombytes@^2.1.0:
   integrity sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ==
   dependencies:
     safe-buffer "^5.1.0"
+
+randomf@^0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/randomf/-/randomf-0.0.3.tgz#c4db23042e8d4d9dd77b70e04ad3858e78026718"
+  integrity sha512-hcZAFZNPZ3YeNpYLkC3MYjVedW4Hb4I0OhQdEHRd/UdDM8roGRH1vCtt8/UTaIHy4VKPLh6kfzS9ljzlMD2Y2Q==
 
 randomfill@^1.0.3:
   version "1.0.4"
