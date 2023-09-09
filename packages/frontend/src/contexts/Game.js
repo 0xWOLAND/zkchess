@@ -16,7 +16,7 @@ export default class Game {
   async load() {
     await new Promise((r) => setTimeout(r, 10))
     this.state.msg.client.listen(
-      "match",
+      "newGame",
       async ({ data: { gameId, white, black } }) => {
         if (this.playerId != white && this.playerId != black) return;
         const { data } = await this.state.msg.client.send("game.load", {
