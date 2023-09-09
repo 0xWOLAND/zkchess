@@ -23,6 +23,8 @@
     "ethers": "^5.7.2",
     "file-loader": "^6.2.0",
     "js-sha512": "^0.8.0",
+    "kokopu": "^4.8.0",
+    "kokopu-react": "^3.0.1",
     "mobx-react-lite": "^3.4.0"
   },
   "devDependencies": {
