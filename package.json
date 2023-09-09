@@ -1,29 +1,5 @@
 {
-  "name": "create-zketh",
-  "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT",
-  "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
-  "scripts": {
-    "install": "lerna bootstrap && git submodule update --init --recursive && rm node_modules/.bin/circom || true",
-    "circuits": "yarn workspace @zketh/circuits run",
-    "contracts": "yarn workspace @zketh/contracts run",
-    "frontend": "yarn workspace @zketh/frontend run",
-    "relay": "yarn workspace @zketh/relay run",
-    "start": "node scripts/start.mjs",
-    "linkUnirep": "sh ./scripts/linkUnirep.sh",
-    "copyUnirep": "sh ./scripts/copyUnirep.sh",
-    "loadBeta": "sh ./scripts/loadBeta.sh",
-    "lint": "prettier ."
-  },
-  "devDependencies": {
-    "lerna": "^6.0.1",
-    "node-fetch": "^3.3.0"
-  },
   "dependencies": {
-    "prettier": "^2.8.4"
+    "hardhat": "^2.17.2"
   }
 }
