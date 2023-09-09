@@ -8,7 +8,6 @@ import { Position } from "kokopu";
 export default observer(() => {
   const { ui, msg, game } = React.useContext(state);
 
-
   return (
     <div>
       <div>active game: {game.activeGame?._id}</div>

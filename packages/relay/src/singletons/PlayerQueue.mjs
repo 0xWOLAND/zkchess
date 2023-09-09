@@ -41,5 +41,4 @@ class PlayerQueue {
   }
 }
 
-
 export default new PlayerQueue();
