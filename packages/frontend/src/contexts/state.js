@@ -1,17 +1,19 @@
-import { createContext } from 'react'
-import Interface from './interface'
-import User from './User'
-import Auth from './Auth'
-import Message from './Message'
-import Game from './Game'
+import { createContext } from "react";
+import Interface from "./interface";
+import User from "./User";
+import Auth from "./Auth";
+import Message from "./Message";
+import Game from "./Game";
+import MatchQueue from "./MatchQueue";
 
-const state = {}
+const state = {};
 
-const ui = new Interface(state)
-const user = new User(state)
-const msg = new Message(state)
-const auth = new Auth(state)
-const game = new Game(state)
+const ui = new Interface(state);
+const user = new User(state);
+const msg = new Message(state);
+const auth = new Auth(state);
+const game = new Game(state);
+const matchQueue = new MatchQueue(state);
 
 Object.assign(state, {
   ui,
@@ -19,7 +21,8 @@ Object.assign(state, {
   msg,
   auth,
   game,
-})
-console.log(state)
+  matchQueue,
+});
+console.log(state);
 
-export default createContext(state)
+export default createContext(state);

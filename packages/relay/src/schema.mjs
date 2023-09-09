@@ -1,5 +1,5 @@
-import { nanoid } from 'nanoid'
-import { Position } from 'kokopu'
+import { nanoid } from "nanoid";
+import { Position } from "kokopu";
 
 export default [
   {
@@ -37,38 +37,48 @@ export default [
     ],
   },
   {
-    name: 'Game',
-    primaryKey: '_id',
+    name: "Game",
+    primaryKey: "_id",
     rows: [
       {
-        name: '_id',
-        type: 'String',
-        default: () => nanoid()
+        name: "_id",
+        type: "String",
+        default: () => nanoid(),
       },
       {
-        name: 'position',
-        type: 'String',
-        default: () => new Position('start').fen()
+        name: "position",
+        type: "String",
+        default: () => new Position("start").fen(),
+      },
+      {
+        name: "player_w",
+        type: "String",
+        default: "",
+      },
+      {
+        name: "player_b",
+        type: "String",
+        default: "",
       },
       // 'w' for white victory, 'b' for black victory, 'd' for draw
-      ['outcome', 'String', { optional: true }],
+      ["outcome", "String", { optional: true }],
       {
-        name: 'lastMoveAt',
-        type: 'Int',
-        default: () => +new Date()
+        name: "lastMoveAt",
+        type: "Int",
+        default: () => +new Date(),
       },
-    ]
+    ],
   },
   {
     name: "Player",
-    primaryKey: "playerId",
+    primaryKey: "_id",
     rows: [
       {
-        name: "playerId",
+        name: "_id",
         type: "String",
         default: () => nanoid(),
       },
       ["rating", "Int"],
     ],
   },
-]
+];

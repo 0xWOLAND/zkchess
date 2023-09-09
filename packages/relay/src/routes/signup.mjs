@@ -8,6 +8,10 @@ const require = createRequire(import.meta.url)
 const UnirepAppABI = require('@zketh/contracts/abi/ZKEth.json')
 
 export default ({ wsApp, db, synchronizer }) => {
+  wsApp.handle("user.signup", async (data, send, next) => {
+    await db.create("Player", {
+      rating: 800,
+    });
   wsApp.handle("user.register", async (data, send, next) => {
     const { proof, publicSignals } = data;
     const signupProof = new SignupProof(publicSignals, proof, synchronizer.prover)
