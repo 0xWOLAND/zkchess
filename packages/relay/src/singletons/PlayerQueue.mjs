@@ -39,7 +39,7 @@ class PlayerQueue {
 
     }
   }
-
 }
 
-export default new PlayerQueue()
+
+export default new PlayerQueue();

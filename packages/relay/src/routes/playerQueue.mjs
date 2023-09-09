@@ -1,4 +1,4 @@
-import PlayerQueue from '../singletons/PlayerQueue.mjs'
+import PlayerQueue from "../singletons/PlayerQueue.mjs";
 
 export default ({ wsApp, db, synchronizer }) => {
   wsApp.handle("queue.leave", async (data, send, next) => {
