@@ -1,6 +1,5 @@
 class PlayerQueue {
   // string[]
-  players = [];
   configure(db, wsApp) {
     this.db = db;
     this.wsApp = wsApp;
@@ -15,21 +14,38 @@ class PlayerQueue {
     })();
   }
 
-  add(id) {
-    this.players.push(id);
+  async get(_id) {
+    return await this.db.findOne("Player", { where: { _id } });
+  }
+  async add(_id) {
+    if (this.get(_id)) return;
+    await this.db.create("Player", {
+      _id,
+      rating: 800,
+    });
   }
 
-  remove(id) {
-    this.players = this.players.filter((v) => v !== id);
+  async pop(_id) {
+    const player = this.get(_id);
+    this.db.delete("Player", {
+      where: {
+        _id,
+      },
+    });
+    return player;
   }
 
   async buildMatches() {
-    while (this.players.length >= 2) {
-      const white = this.players.pop();
-      const black = this.players.pop();
+    let queue = this.db.findMany("Player", {});
+    while (queue.length >= 2) {
+      queue.sort((p1, p2) => p1.rating < p2.rating);
+
+      const white = this.pop(queue[0]);
+      const black = this.pop(queue[1]);
+
       const game = await this.db.create("Game", {
         white,
-        white,
+        black,
       });
       this.wsApp.broadcast("newGame", {
         gameId: game._id,
