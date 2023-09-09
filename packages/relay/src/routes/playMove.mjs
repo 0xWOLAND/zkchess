@@ -22,12 +22,21 @@ export default ({ wsApp, db }) => {
       send(`invalid or illegal move ${move}`, 1)
       return
     }
+    let outcome
+    if (position.isStalemate() || position.isDead()) {
+      outcome = 'd'
+    } else if (position.isCheckmate()) {
+      // player to move has lost
+      outcome = position.turn() === 'w' ? 'b' : 'w'
+    }
     const n = await db.update('Game', {
       where: {
         _id: gameId,
       },
       update: {
-        position: position.fen()
+        position: position.fen(),
+        lastMoveAt: +new Date(),
+        ...(outcome ? { outcome } : {})
       }
     })
     if (n !== 1) {
@@ -35,6 +44,6 @@ export default ({ wsApp, db }) => {
       return
     }
     send(0)
-    wsApp.broadcast(gameId, { position: position.fen() })
+    wsApp.broadcast(gameId, await db.findOne('Game', { where: { _id: gameId}}))
   })
 }

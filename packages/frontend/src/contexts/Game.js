@@ -2,8 +2,7 @@ import { makeAutoObservable } from 'mobx'
 import { Position } from 'kokopu'
 
 export default class Game {
-  _activeGame = null
-  activeGameId = null
+  activeGame = null
   position = null
 
   constructor(state) {
@@ -16,11 +15,10 @@ export default class Game {
 
   async startGame() {
     const { data } = await this.state.msg.client.send('game.create')
-    this._activeGame = new Position(data.position)
-    this.activeGameId = data._id
-    this.state.msg.client.listen(this.activeGameId, ({ data }) => {
-      this._activeGame = new Position(data.position)
-      this.position = this._activeGame.fen()
+    this.activeGame = data
+    this.state.msg.client.listen(this.activeGame._id, ({ data }) => {
+      console.log(data)
+      this.activeGame = data
     })
   }
 
@@ -28,20 +26,19 @@ export default class Game {
     const { data } = await this.state.msg.client.send('game.load', {
       gameId
     })
-    this._activeGame = new Position(data.position)
-    this.activeGameId = data._id
-    this.state.msg.client.listen(this.activeGameId, ({ data }) => {
-      this._activeGame = new Position(data.position)
-      this.position = this._activeGame.fen()
+    this.activeGame = data
+    this.state.msg.client.listen(this.activeGame._id, ({ data }) => {
+      this.activeGame = data
     })
   }
 
   async playMove(move) {
-    this._activeGame.play(move)
-    this.position = this._activeGame.fen()
+    const g = new Position(this.activeGame.position)
+    g.play(move)
+    this.activeGame.position = g.fen()
     const { data } = await this.state.msg.client.send('game.playMove', {
       move,
-      gameId: this.activeGameId
+      gameId: this.activeGame._id
     })
   }
 

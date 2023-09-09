@@ -12,7 +12,7 @@ export default observer(() => {
   return (
     <div>
       <button onClick={() => game.startGame()}>start game</button>
-      <div>active game: {game.activeGameId}</div>
+      <div>active game: {game.activeGame?._id}</div>
       <div>
         <input type="text" onChange={(e) => setGameId(e.target.value)} value={gameId} />
         <button onClick={() => game.joinGame(gameId)}>
@@ -22,8 +22,13 @@ export default observer(() => {
       <Chessboard
         interactionMode="playMoves"
         onMovePlayed={(move) => game.playMove(move)}
-        position={game.position ?? new Position('start')}
+        position={game.activeGame?.position ?? new Position('start')}
       />
+      {game.activeGame?.outcome ? (
+        <div>
+          Game over: {game.activeGame?.outcome}
+        </div>
+      ) : null}
     </div>
   )
 })

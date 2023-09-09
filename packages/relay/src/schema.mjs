@@ -50,6 +50,13 @@ export default [
         type: 'String',
         default: () => new Position('start').fen()
       },
+      // 'w' for white victory, 'b' for black victory, 'd' for draw
+      ['outcome', 'String', { optional: true }],
+      {
+        name: 'lastMoveAt',
+        type: 'Int',
+        default: () => +new Date()
+      },
     ]
   },
   {
