@@ -9,5 +9,5 @@ const ADDRESS_TREE_DEPTH = 20
 export const ptauName = 'powersOfTau28_hez_final_15.ptau'
 
 export const circuitContents = {
-    signupNonAnon: `pragma circom 2.0.0; include "../circuits/signupNonAnon.circom"; \n\ncomponent main = SignupNonAnon();`,
+    proveElo: `pragma circom 2.0.0; include "../circuits/proveElo.circom"; \n\ncomponent main = ProveElo(${FIELD_COUNT});`,
 }
