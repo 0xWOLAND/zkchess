@@ -4,6 +4,7 @@ import { Position } from 'kokopu'
 export default class Game {
   activeGame = null
   position = null
+  activeGames = []
 
   constructor(state) {
     makeAutoObservable(this)
@@ -12,6 +13,11 @@ export default class Game {
   }
 
   async load() {}
+
+  async loadGames() {
+    const { data } = await this.state.msg.client.send('game.list')
+    this.activeGames = data
+  }
 
   async startGame() {
     const { data } = await this.state.msg.client.send('game.create')

@@ -7,7 +7,6 @@ export default class Message {
   client = null
   keepaliveTimer = null
   connected = false
-  info = {}
 
   messages = []
   channels = []
@@ -21,6 +20,7 @@ export default class Message {
 
   async load() {
     await this.connect()
+    await this.state.game.loadGames()
   }
 
   async connect() {
@@ -46,7 +46,5 @@ export default class Message {
       () => this.client.send('ping'),
       5 * 60 * 1000
     )
-    const { data, message, status } = await this.client.send('info')
-    this.info = data
   }
 }
