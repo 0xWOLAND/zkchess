@@ -17,7 +17,6 @@ export default class Game {
     const { data } = await this.state.msg.client.send('game.create')
     this.activeGame = data
     this.state.msg.client.listen(this.activeGame._id, ({ data }) => {
-      console.log(data)
       this.activeGame = data
     })
   }
