@@ -51,11 +51,11 @@ export default [
         default: () => new Position("start").fen(),
       },
       {
-        name: "player_w",
+        name: "white",
         type: "String",
       },
       {
-        name: "player_b",
+        name: "black",
         type: "String",
       },
       // 'w' for white victory, 'b' for black victory, 'd' for draw
