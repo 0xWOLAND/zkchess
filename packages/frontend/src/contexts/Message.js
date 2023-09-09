@@ -2,8 +2,6 @@ import EspecialClient from 'especial/client'
 import { makeAutoObservable, makeObservable, observable } from 'mobx'
 import { WS_SERVER } from '../config'
 
-const CHANNEL_NAME = 'internal'
-
 export default class Message {
   connection = null
   client = null

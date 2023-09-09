@@ -20,5 +20,6 @@ Object.assign(state, {
   auth,
   game,
 })
+console.log(state)
 
 export default createContext(state)

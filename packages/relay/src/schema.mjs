@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid'
+import { Position } from 'kokopu'
 
 export default [
   {
@@ -32,4 +33,20 @@ export default [
       ['dataPath', 'String'],
     ],
   },
+  {
+    name: 'Game',
+    primaryKey: '_id',
+    rows: [
+      {
+        name: '_id',
+        type: 'String',
+        default: () => nanoid()
+      },
+      {
+        name: 'position',
+        type: 'String',
+        default: () => new Position('start').fen()
+      },
+    ]
+  }
 ]

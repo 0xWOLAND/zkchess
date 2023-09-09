@@ -7,14 +7,22 @@ import { Position } from 'kokopu'
 
 export default observer(() => {
   const { ui, msg, game } = React.useContext(state)
+  const [gameId, setGameId] = React.useState('')
 
   return (
     <div>
       <button onClick={() => game.startGame()}>start game</button>
+      <div>active game: {game.activeGameId}</div>
+      <div>
+        <input type="text" onChange={(e) => setGameId(e.target.value)} value={gameId} />
+        <button onClick={() => game.joinGame(gameId)}>
+        Join game
+        </button>
+      </div>
       <Chessboard
         interactionMode="playMoves"
         onMovePlayed={(move) => game.playMove(move)}
-        position={game.activeGame}
+        position={game.position ?? new Position('start')}
       />
     </div>
   )
