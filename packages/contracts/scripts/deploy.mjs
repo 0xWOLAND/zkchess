@@ -47,7 +47,7 @@ const app = await retryAsNeeded(() =>
 await app.deployed()
 
 console.log(
-  `Unirep app with epoch length ${2 ** 32} deployed to ${app.address}`
+  `Unirep app deployed to ${app.address}`
 )
 
 const config = `module.exports = {

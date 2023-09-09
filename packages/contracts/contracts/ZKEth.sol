@@ -35,7 +35,7 @@ contract ZKEth is EIP712Decoder {
         unirep = _unirep;
 
         // sign up as an attester
-        unirep.attesterSignUp(2**32);
+        unirep.attesterSignUp(300);
 
         // signupWithAddressVerifier = _signupWithAddressVerifier;
         // signupNonAnonVerifier = _signupNonAnonVerifier;
@@ -65,47 +65,16 @@ contract ZKEth is EIP712Decoder {
     //     return digest;
     // }
 
-    // function signupNonAnon(
-    //     bytes memory signature,
-    //     uint256[] memory publicSignals,
-    //     uint256[8] memory proof
-    // ) public {
-    //     require(signupNonAnonVerifier.verifyProof(publicSignals, proof), 'proof');
-
-    //     uint256 identityCommitment = publicSignals[0];
-
-    //     address expectedAddress = address(uint160(publicSignals[5]));
-    //     {
-    //         bytes32 msgHash = getSignupSigHash(SemaphoreKey({
-    //           whatami: ">zketh signup proof<",
-    //           identity: identityCommitment
-    //         }));
-    //         address signer = recover(msgHash, signature);
-    //         require(signer == expectedAddress, 'addrmismatc');
-    //     }
-
-    //     // shift right 6 bits to fit in bn128 field element
-    //     uint sigHash = uint(keccak256(signature)) >> 6;
-    //     require(sigHash == publicSignals[6], 'sigmismatc');
-
-    //     uint256 stateTreeLeaf = publicSignals[1];
-    //     uint256 data0 = publicSignals[2];
-
-    //     uint256 attesterId = publicSignals[3];
-    //     require(attesterId == uint256(uint160(address(this))), 'attstr');
-
-    //     uint64 epoch = uint64(publicSignals[4]);
-
-    //     uint256[] memory init = new uint256[](1);
-    //     init[0] = data0;
-
-    //     unirep.manualUserSignUp(
-    //         epoch,
-    //         identityCommitment,
-    //         stateTreeLeaf,
-    //         init
-    //     );
-    // }
+    // TODO: restrict the caller of this function
+    function signup(
+        uint256[] memory publicSignals,
+        uint256[8] memory proof
+    ) public {
+        unirep.userSignUp(
+            publicSignals,
+            proof
+        );
+    }
 
     // function signup(
     //     uint256[] memory publicSignals,

@@ -1,17 +1,16 @@
 import { makeAutoObservable } from 'mobx'
 import { ethers } from 'ethers'
-import { ZkIdentity, Strategy, F, IncrementalMerkleTree } from '@unirep/utils'
-import { UserState } from '@unirep/core'
-import { SECP256K1_N, getPointPreComputes, splitToRegisters } from '../utils/ec'
+import { Identity } from '@semaphore-protocol/identity'
+import { UserState, schema } from '@unirep/core'
 import { provider, UNIREP_ADDRESS, APP_ADDRESS, SERVER } from '../config'
-import prover from './prover'
+// import prover from './prover'
 import { fromRpcSig, hashPersonalMessage, ecrecover } from '@ethereumjs/util'
-import elliptic from 'elliptic'
 import BN from 'bn.js'
 import poseidon from 'poseidon-lite'
 import { TypedDataUtils } from '@metamask/eth-sig-util'
-
-const ec = new elliptic.ec('secp256k1')
+import { IndexedDBConnector, MemoryConnector } from 'anondb/web'
+import { constructSchema } from 'anondb/types'
+import prover from '@unirep/circuits/provers/web'
 
 export default class Auth {
   addresses = []
@@ -24,6 +23,7 @@ export default class Auth {
 
   userState = null
   addressTree = null
+  hasSignedUp = false
 
   messages = []
 
@@ -35,107 +35,67 @@ export default class Auth {
     this.load()
   }
 
-  async load() {}
-
-  addressIndex(addr) {
-    if (!this.addressTree) return -1
-    return this.addressTree._nodes[0].indexOf(BigInt(addr))
-  }
-
-  async buildAddressTree() {
-    this.addressTree = null
-    const channel = this.state.msg.channels.find(
-      ({ name }) => name === this.state.msg.activeChannel
-    )
-    if (!channel) throw new Error('Unknown channel')
-    if (this.treeCache[this.state.msg.activeChannel]) {
-      this.addressTree = this.treeCache[this.state.msg.activeChannel]
-      return
+  async load() {
+    const id = localStorage.getItem('id') ?? undefined
+    const identity = new Identity(id)
+    if (!id) {
+      localStorage.setItem('id', identity.toString())
     }
-    const url = new URL(channel.dataPath, SERVER)
-    const data = await fetch(url.toString()).then((r) => r.text())
-    const treeData = await JSON.parse(data, (key, v) => {
-      if (typeof v === 'string' && v.startsWith('0x')) {
-        return BigInt(v)
-      }
-      return v
-    })
-    const tree = new IncrementalMerkleTree(20)
-    tree._nodes = treeData.nodes
-    tree._root = treeData.root
-    this.addressTree = tree
-    this.treeCache[this.state.msg.activeChannel] = tree
-  }
 
-  async startUserState() {
-    if (!this.id) throw new Error('No ZK identity')
-
-    this.userState = new UserState({
+    const db = new MemoryConnector(constructSchema(schema))
+    const userState = new UserState({
+      db,
       provider,
       prover,
       unirepAddress: UNIREP_ADDRESS,
       attesterId: APP_ADDRESS,
-      _id: this.id,
+      id: identity,
     })
-    await this.userState.sync.start()
-    await this.buildAddressTree()
+    await userState.sync.start()
+    await userState.waitForSync()
+    this.hasSignedUp = await userState.hasSignedUp()
+    this.userState = userState
+    this.watchTransition()
   }
 
-  // prove control of an address and sign some text
-  async proveAddressData(text) {
-    const addrIndex = this.addressIndex(BigInt(this.address))
-    if (addrIndex === -1) {
-      throw new Error('You are not authorized to chat here')
+  async watchTransition() {
+    for (;;) {
+      const time = this.userState.sync.calcEpochRemainingTime()
+      const hasSignedUp = await this.userState.hasSignedUp()
+      if (!hasSignedUp) {
+        await new Promise(r => setTimeout(r, time * 1000))
+        continue
+      }
+      const epoch = await this.userState.latestTransitionedEpoch()
+      try {
+        if (
+          hasSignedUp &&
+          epoch != this.userState.sync.calcCurrentEpoch()
+        ) {
+          await this.stateTransition()
+        } else if (epoch != this.userState.sync.calcCurrentEpoch()) {
+          await new Promise(r => setTimeout(r, 2000))
+          continue
+        }
+      } catch (err) {
+        await new Promise(r => setTimeout(r, 10000))
+        continue
+      }
+      await new Promise(r => setTimeout(r, time * 1000))
     }
-    const addressTreeProof = this.addressTree.createProof(addrIndex)
-    // take the upper 250 bits to fit into a bn128 field element
-    const hash = ethers.utils.keccak256(
-      '0x' + Buffer.from(text, 'utf8').toString('hex')
-    )
-    const sig_data = BigInt(hash) >> BigInt(6)
-    const data = await this.userState.getData()
-    const stateTree = await this.userState.sync.genStateTree(0)
-    const index = await this.userState.latestStateTreeLeafIndex()
-    const stateTreeProof = stateTree.createProof(index)
-    const inputs = {
-      sig_data,
-      attester_id: APP_ADDRESS,
-      identity_secret: this.id.secretHash,
-      data,
-      epoch: 0,
-      address: this.address,
-      state_tree_elements: stateTreeProof.siblings,
-      state_tree_indices: stateTreeProof.pathIndices,
-      address_tree_elements: addressTreeProof.siblings,
-      address_tree_indices: addressTreeProof.pathIndices,
-    }
-    console.time('Message proof time')
-    const { proof, publicSignals } = await prover.genProofWithCache(
-      'proveAddress',
-      inputs
-    )
-    console.timeEnd('Message proof time')
-    return { publicSignals, proof }
   }
 
-  async getAddresses() {
-    this.addresses = await ethereum.request({ method: 'eth_requestAccounts' })
-  }
-
-  async reloadAddresses() {
-    this.addresses = await ethereum.request({ method: 'eth_accounts' })
-  }
-
-  async buildNonAnonProof(sigHash) {
-    const inputs = {
-      identity_nullifier: this.id.identityNullifier.toString(),
-      identity_trapdoor: this.id.trapdoor.toString(),
-      attester_id: APP_ADDRESS,
-      epoch: 0,
-      address: this.address,
-      sig_hash: sigHash,
-    }
-    return prover.genProofAndPublicSignals('signupNonAnon', inputs)
+  async signup() {
+    // generate proof and send
+    const signupProof = await this.userState.genUserSignUpProof()
+    const { data } = await this.state.msg.client.send('user.register', {
+      publicSignals: signupProof.publicSignals.map(v => v.toString()),
+      proof: signupProof.proof.map(v => v.toString()),
+    })
+    console.log(data)
+    await provider.waitForTransaction(data.hash)
+    await this.userState.waitForSync()
+    this.hasSignedUp = await this.userState.hasSignedUp()
   }
 
   async getSignupSignature() {
@@ -301,45 +261,5 @@ export default class Auth {
     this.id._identityTrapdoor = trapdoor
     this.id._identityNullifier = nullifier
     this.id._secret = [nullifier, trapdoor]
-  }
-
-  async proveAddress(onUpdate) {
-    const existingProof = localStorage.getItem(this.address)
-    if (existingProof) {
-      const { proof, publicSignals } = JSON.parse(existingProof)
-      this.proof = proof
-      this.publicSignals = publicSignals
-      return
-    }
-    // generate t precomputes as download happens
-    const hash = BigInt('0x' + Buffer.from(this.hash).toString('hex'))
-    const { v, r, s } = fromRpcSig(this.sig)
-    const pubkey = ecrecover(Buffer.from(this.hash), v, r, s)
-    const pubkeyHex = Buffer.from(pubkey).toString('hex')
-    if (pubkeyHex.length !== 128) {
-      throw new Error('Invalid public key length')
-    }
-    const _pubkey = [pubkeyHex.slice(0, 64), pubkeyHex.slice(64)]
-    const inputs = {
-      r: [splitToRegisters(BigInt('0x' + Buffer.from(r).toString('hex')))],
-      s: [splitToRegisters(BigInt('0x' + Buffer.from(s).toString('hex')))],
-      msghash: [splitToRegisters(hash)],
-      pubkey: _pubkey.map((k) => splitToRegisters(k)),
-      identity_nullifier: this.id.identityNullifier.toString(),
-      identity_trapdoor: this.id.trapdoor.toString(),
-      attester_id: APP_ADDRESS,
-      epoch: 0,
-    }
-    const proofPromise = prover.genProofAndPublicSignals(
-      'signupWithAddress',
-      inputs,
-      onUpdate
-    )
-    await inputs
-    const { publicSignals, proof } = await proofPromise
-    onUpdate({ state: 30, text: 'building proof', progress: 'done' })
-    localStorage.setItem(this.address, JSON.stringify({ publicSignals, proof }))
-    this.proof = proof
-    this.publicSignals = publicSignals
   }
 }

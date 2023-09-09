@@ -6,7 +6,7 @@ import state from '../contexts/state'
 import Connect from '../components/Connect'
 
 export default observer(() => {
-  const { msg } = React.useContext(state)
+  const { msg, auth } = React.useContext(state)
   return (
     <>
       <div className="header">
@@ -25,6 +25,7 @@ export default observer(() => {
           </div>
         </div>
         <div className="links">
+          <button onClick={() => auth.signup()}>signup</button>
           <Connect />
         </div>
       </div>
