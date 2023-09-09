@@ -29,7 +29,6 @@ contract ZKEth is EIP712Decoder {
 
     constructor(
         Unirep _unirep,
-        IVerifier _signupWithAddressVerifier,
         IVerifier _signupNonAnonVerifier
     ) {
         // set unirep address

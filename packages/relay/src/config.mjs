@@ -2,10 +2,9 @@ import { ethers } from 'ethers'
 import fs from 'fs/promises'
 import os from 'os'
 import path from 'path'
-// import _config from '../../../config.js'
+import _config from '../../../config.js'
 import { config } from 'dotenv'
 config()
-const _config = {}
 
 export const UNIREP_ADDRESS =
   process.env.UNIREP_ADDRESS ?? _config.UNIREP_ADDRESS

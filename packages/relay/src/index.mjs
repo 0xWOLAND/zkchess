@@ -6,7 +6,6 @@ import especial from 'especial'
 import { provider, PRIVATE_KEY, dbpath } from './config.mjs'
 import TransactionManager from './singletons/TransactionManager.mjs'
 import synchronizer from './singletons/AppSynchronizer.mjs'
-import HashchainManager from './singletons/HashchainManager.mjs'
 import schema from './schema.mjs'
 import { SQLiteConnector } from 'anondb/node.js'
 import { IncrementalMerkleTree } from '@unirep/utils'
@@ -15,33 +14,6 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 // the application db
 const db = await SQLiteConnector.create(schema, dbpath('app.db'))
-
-synchronizer.on('StateTreeLeaf', async ({ decodedData }) => {
-  const epoch = Number(decodedData.epoch)
-  const index = Number(decodedData.index)
-  const attesterId = BigInt(decodedData.attesterId).toString()
-  const hash = BigInt(decodedData.leaf).toString()
-  const leaves = await synchronizer._db.findMany('StateTreeLeaf', {
-    where: {
-      epoch,
-      index: {
-        lt: index,
-      },
-      attesterId,
-    },
-    orderBy: {
-      index: 'asc',
-    },
-  })
-  const tree = new IncrementalMerkleTree(synchronizer.settings.stateTreeDepth)
-  for (const leaf of leaves) {
-    tree.insert(BigInt(leaf.hash))
-  }
-  tree.insert(BigInt(hash))
-  await db.create('StateTreeRoot', {
-    hash: tree.root.toString(),
-  })
-})
 await synchronizer.start()
 
 TransactionManager.configure(PRIVATE_KEY, provider, synchronizer._db)

@@ -29,11 +29,6 @@ const unirep = await deployUnirep(signer, {
   STATE_TREE_DEPTH: 20,
 })
 
-const SignupVerifier = await ethers.getContractFactory(
-  'SignupWithAddressVerifier'
-)
-const signupVerifier = await retryAsNeeded(() => SignupVerifier.deploy())
-
 const SignupNonAnonVerifier = await ethers.getContractFactory(
   'SignupNonAnonVerifier'
 )
@@ -45,7 +40,6 @@ const App = await ethers.getContractFactory('ZKEth')
 const app = await retryAsNeeded(() =>
   App.deploy(
     unirep.address,
-    signupVerifier.address,
     signupNonAnonVerifier.address
   )
 )

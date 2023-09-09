@@ -8,7 +8,7 @@ module.exports = {
       chainId: 421613, // match arb goerli
     },
     local: {
-      url: 'http://localhost:8545',
+      url: 'http://127.0.0.1:8545',
       blockGasLimit: 12000000,
       chainId: 421613, // match arb goerli
       accounts: [
