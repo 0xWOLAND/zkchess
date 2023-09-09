@@ -1,35 +1,50 @@
-import { nanoid } from 'nanoid'
+import { nanoid } from "nanoid";
 
 export default [
   {
-    name: 'Message',
-    primaryKey: '_id',
+    name: "Message",
+    primaryKey: "_id",
     rows: [
       {
-        name: '_id',
-        type: 'String',
+        name: "_id",
+        type: "String",
         default: () => nanoid(),
       },
-      ['text', 'String'],
-      ['timestamp', 'Int', { unique: true }],
-      ['publicSignals', 'String'],
-      ['proof', 'String'],
-      ['channelName', 'String'],
+      ["FEN", "String"],
+      ["timestamp", "Int", { unique: true }],
+      ["publicSignals", "String"],
+      ["proof", "String"],
+      ["channelName", "String"],
     ],
   },
   {
-    name: 'StateTreeRoot',
-    primaryKey: 'hash',
-    rows: [['hash', 'String']],
+    name: "StateTreeRoot",
+    primaryKey: "hash",
+    rows: [["hash", "String"]],
   },
   {
-    name: 'Channel',
-    primaryKey: 'name',
+    name: "Match",
+    primaryKey: "matchId",
     rows: [
-      ['name', 'String'],
-      ['memberCount', 'Int'],
-      ['root', 'String'],
-      ['dataPath', 'String'],
+      {
+        name: "matchId",
+        type: "String",
+        default: () => nanoid(),
+      },
+      ["white", "String"],
+      ["black", "String"],
     ],
   },
-]
+  {
+    name: "Player",
+    primaryKey: "playerId",
+    rows: [
+      {
+        name: "playerId",
+        type: "String",
+        default: () => nanoid(),
+      },
+      ["rating", "Int"],
+    ],
+  },
+];
