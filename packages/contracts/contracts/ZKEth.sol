@@ -19,10 +19,8 @@ interface IVerifier {
 }
 
 contract ZKEth is EIP712Decoder {
-    // IVerifier immutable signupWithAddressVerifier;
-    // IVerifier immutable signupNonAnonVerifier;
-
     Unirep public unirep;
+    address immutable owner;
 
     // bytes32 public immutable domainHash;
 
@@ -31,76 +29,17 @@ contract ZKEth is EIP712Decoder {
         unirep = _unirep;
 
         // sign up as an attester
-        unirep.attesterSignUp(300);
-
-        // signupWithAddressVerifier = _signupWithAddressVerifier;
-        // signupNonAnonVerifier = _signupNonAnonVerifier;
-
-        // domainHash = getEIP712DomainHash("zketh","0",block.chainid,address(this));
+        unirep.attesterSignUp(24*60*60);
+        owner = msg.sender;
     }
 
-    // function getEIP712DomainHash(string memory contractName, string memory version, uint256 chainId, address verifyingContract) public pure returns (bytes32) {
-    //     bytes memory encoded = abi.encode(
-    //       EIP712DOMAIN_TYPEHASH,
-    //       keccak256(bytes(contractName)),
-    //       keccak256(bytes(version)),
-    //       chainId,
-    //       verifyingContract
-    //     );
-    //     return keccak256(encoded);
-    // }
-
-    // function getSignupSigHash(SemaphoreKey memory input) public view returns (bytes32) {
-    //     bytes32 digest = keccak256(
-    //         abi.encodePacked(
-    //             "\x19\x01",
-    //             domainHash,
-    //             GET_SEMAPHOREKEY_PACKETHASH(input)
-    //         )
-    //     );
-    //     return digest;
-    // }
-
-    // TODO: restrict the caller of this function
     function signup(
         uint256[] memory publicSignals,
         uint256[8] memory proof
     ) public {
+        require(msg.sender == owner);
         unirep.userSignUp(publicSignals, proof);
     }
-
-    // function signup(
-    //     uint256[] memory publicSignals,
-    //     uint256[8] memory proof
-    // ) public {
-    //     // Verify the proof
-    //     require(signupWithAddressVerifier.verifyProof(publicSignals, proof), 'proof');
-
-    //     // The expected message hash, in 4 limbs
-    //     require(publicSignals[5] == 12742213206988075232, 'sig0');
-    //     require(publicSignals[6] == 10620010067332803895, 'sig1');
-    //     require(publicSignals[7] == 3731297768199697761, 'sig2');
-    //     require(publicSignals[8] == 11874718941084289869, 'sig3');
-
-    //     uint256 identityCommitment = publicSignals[0];
-    //     uint256 stateTreeLeaf = publicSignals[1];
-    //     uint256 data0 = publicSignals[2];
-
-    //     uint256 attesterId = publicSignals[3];
-    //     require(attesterId == uint256(uint160(address(this))), 'attstr');
-
-    //     uint64 epoch = uint64(publicSignals[4]);
-
-    //     uint256[] memory init = new uint256[](1);
-    //     init[0] = data0;
-
-    //     unirep.manualUserSignUp(
-    //         epoch,
-    //         identityCommitment,
-    //         stateTreeLeaf,
-    //         init
-    //     );
-    // }
 
     function attest(
         address attesterId,
@@ -109,6 +48,7 @@ contract ZKEth is EIP712Decoder {
         uint48 epoch,
         uint eloChange
     ) public {
+        require(msg.sender == owner);
         uint48 currentEpoch = unirep.attesterCurrentEpoch(uint160(attesterId));
         if (currentEpoch == epoch) {
             unirep.attest(currentEpochKey, epoch, 0, eloChange);
