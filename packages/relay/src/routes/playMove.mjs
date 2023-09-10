@@ -74,8 +74,9 @@ export default ({ wsApp, db, synchronizer }) => {
       return;
     }
     const position = new Position(game.position);
-    if (!position.play(move)) {
+    if (!position.play(move) || position.turn() != color) {
       // move is illegal or string is invalid
+      console.log("illegal move");
       send(`invalid or illegal move ${move}`, 1);
       return;
     }
@@ -95,7 +96,7 @@ export default ({ wsApp, db, synchronizer }) => {
       send(`failed to update game`, 1);
       return;
     }
-    send(0);
+    send("", 0);
     wsApp.broadcast(
       gameId,
       await db.findOne("Game", { where: { _id: gameId } })
