@@ -26,7 +26,7 @@ contract ZKEth is EIP712Decoder {
 
     // bytes32 public immutable domainHash;
 
-    constructor(Unirep _unirep, IVerifier _signupNonAnonVerifier) {
+    constructor(Unirep _unirep) {
         // set unirep address
         unirep = _unirep;
 
@@ -102,7 +102,20 @@ contract ZKEth is EIP712Decoder {
     //     );
     // }
 
-    function attest(uint256 epochKey, uint48 epoch, uint eloChange) public {
-        unirep.attest(epochKey, epoch, 0, eloChange);
+    function attest(
+        address attesterId,
+        uint256 currentEpochKey,
+        uint256 nextEpochKey,
+        uint48 epoch,
+        uint eloChange
+    ) public {
+        uint48 currentEpoch = unirep.attesterCurrentEpoch(uint160(attesterId));
+        if (currentEpoch == epoch) {
+            unirep.attest(currentEpochKey, epoch, 0, eloChange);
+        } else if (currentEpoch + 1 == epoch) {
+            unirep.attest(nextEpochKey, epoch, 0, eloChange);
+        } else {
+            revert();
+        }
     }
 }

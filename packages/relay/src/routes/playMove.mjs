@@ -1,6 +1,63 @@
 import { Position } from "kokopu";
+import { APP_ADDRESS } from "../config.mjs";
+import { ethers } from "ethers";
+import { createRequire } from "module";
+import TransactionManager from "../singletons/TransactionManager.mjs";
 
-export default ({ wsApp, db }) => {
+const require = createRequire(import.meta.url);
+const UnirepAppABI = require("@zketh/contracts/abi/ZKEth.json");
+
+const SNARK_SCALAR_FIELD = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+
+const handleGameEnd = async (position, game, db, synchronizer) => {
+  let outcome;
+  const white = await db.findOne("Player", { where: { _id: game.white } });
+  const black = await db.findOne("Player", { where: { _id: game.black } });
+  // update player ratings
+  let eloChange =
+    1.0 / (1.0 + Math.pow(10, (white.rating - black.rating) / 400));
+  if (position.isStalemate() || position.isDead()) {
+    outcome = "d";
+    eloChange *= 0.3;
+  } else if (position.isCheckmate()) {
+    // player to move has lost
+    outcome = position.turn() === "w" ? "b" : "w";
+  } else return outcome;
+
+  eloChange = (eloChange + SNARK_SCALAR_FIELD) % SNARK_SCALAR_FIELD;
+
+  console.log("attesting contracts...");
+  const contract = new ethers.Contract(APP_ADDRESS, UnirepAppABI);
+  {
+    const { currentEpk, nextEpk, epoch } = white;
+    const calldata = contract.interface.encodeFunctionData("attest", [
+      APP_ADDRESS,
+      currentEpk,
+      nextEpk,
+      epoch,
+      eloChange,
+    ]);
+
+    await TransactionManager.queueTransaction(APP_ADDRESS, calldata);
+  }
+  {
+    const { currentEpk, nextEpk, epoch } = black;
+    const calldata = contract.interface.encodeFunctionData("attest", [
+      APP_ADDRESS,
+      currentEpk,
+      nextEpk,
+      epoch,
+      eloChange,
+    ]);
+
+    await TransactionManager.queueTransaction(APP_ADDRESS, calldata);
+  }
+  console.log("finished game");
+
+  return outcome;
+};
+
+export default ({ wsApp, db, synchronizer }) => {
   wsApp.handle("game.playMove", async (data, send, next) => {
     const { move, color, gameId } = data;
     if (!gameId) {
@@ -22,32 +79,7 @@ export default ({ wsApp, db }) => {
       send(`invalid or illegal move ${move}`, 1);
       return;
     }
-    let outcome;
-    const white = db.findOne("Player", { where: { _id: game.white } });
-    const black = db.findOne("Player", { where: { _id: game.black } });
-    // update player ratings
-    const ratingChange =
-      1.0 / (1.0 + Math.pow(10, (white.rating - black.rating) / 400));
-    if (position.isStalemate() || position.isDead()) {
-      outcome = "d";
-
-      db.update("Player", {
-        where: { _id: white.id, rating: white.rating + 0.3 * ratingChange },
-      });
-      db.update("Player", {
-        where: { _id: black.id, rating: black.rating - 0.3 * ratingChange },
-      });
-    } else if (position.isCheckmate()) {
-      // player to move has lost
-      outcome = position.turn() === "w" ? "b" : "w";
-
-      db.update("Player", {
-        where: { _id: white.id, rating: white.rating + ratingChange },
-      });
-      db.update("Player", {
-        where: { _id: black.id, rating: black.rating - ratingChange },
-      });
-    }
+    const outcome = await handleGameEnd(position, game, db, synchronizer);
 
     const n = await db.update("Game", {
       where: {

@@ -30,7 +30,6 @@ export default ({ wsApp, db, synchronizer }) => {
     }
     // make a transaction lil bish
     const contract = new ethers.Contract(APP_ADDRESS, UnirepAppABI);
-    // const contract =
     const calldata = contract.interface.encodeFunctionData("signup", [
       signupProof.publicSignals,
       signupProof.proof,
