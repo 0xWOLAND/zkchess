@@ -27,8 +27,12 @@ export default ({ wsApp, db, synchronizer }) => {
     }
 
     // new state tree leaf
-    const id = ustProof.publicSignals[1]
-    PlayerQueue.add(id.toString(), Number(BigInt(eloProof.publicSignals[1])))
+    PlayerQueue.add({
+      _id: eloProof.publicSignals[0].toString(),
+      rating: Number(BigInt(eloProof.publicSignals[1])),
+      currentEpk: eloProof.publicSignals[2].toString(),
+      nextEpk: eloProof.publicSignals[3].toString(),
+    })
     send(0)
   });
 };

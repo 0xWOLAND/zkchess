@@ -55,7 +55,23 @@ export default [
         type: "String",
       },
       {
+        name: "white_current_epk",
+        type: "String",
+      },
+      {
+        name: "white_next_epk",
+        type: "String",
+      },
+      {
         name: "black",
+        type: "String",
+      },
+      {
+        name: "black_current_epk",
+        type: "String",
+      },
+      {
+        name: "black_next_epk",
         type: "String",
       },
       // 'w' for white victory, 'b' for black victory, 'd' for draw
@@ -77,6 +93,8 @@ export default [
         default: () => nanoid(),
       },
       ["rating", "Int"],
+      ["currentEpk", "String"],
+      ["nextEpk", "String"],
     ],
   },
 ];

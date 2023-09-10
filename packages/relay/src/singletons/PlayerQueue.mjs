@@ -14,7 +14,12 @@ class PlayerQueue {
     })();
   }
 
-  async add(_id, rating) {
+  async add({
+    _id,
+    rating,
+    currentEpk,
+    nextEpk
+  }) {
     await this.db.transaction(async _db => {
       // TODO: use unique index
       if (await this.db.findOne('Player', {
@@ -33,6 +38,8 @@ class PlayerQueue {
       _db.create('Player', {
         _id,
         rating,
+        currentEpk,
+        nextEpk
       })
     })
   }
@@ -44,9 +51,9 @@ class PlayerQueue {
       // queue.sort((p1, p2) => p1.rating < p2.rating);
       const toRemove = []
       while (queue.length >= 2) {
-        const white = queue.pop()._id;
-        const black = queue.pop()._id;
-        toRemove.push(white, black)
+        const white = queue.pop()
+        const black = queue.pop()
+        toRemove.push(white._id, black._id)
         gamePlayers.push({ white, black })
       }
       _db.delete('Player', {
@@ -57,13 +64,17 @@ class PlayerQueue {
     })
     for (const { white, black } of gamePlayers) {
       const game = await this.db.create("Game", {
-        white,
-        black,
+        white: white._id,
+        white_current_epk: white.currentEpk,
+        white_next_epk: white.nextEpk,
+        black: black._id,
+        black_current_epk: black.currentEpk,
+        black_next_epk: black.nextEpk,
       });
       this.wsApp.broadcast("newGame", {
         gameId: game._id,
-        white,
-        black,
+        white: white._id,
+        black: black._id,
       });
     }
   }
