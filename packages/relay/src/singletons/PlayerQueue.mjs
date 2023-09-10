@@ -16,10 +16,20 @@ class PlayerQueue {
 
   async add(_id) {
     await this.db.transaction(async _db => {
+      // TODO: use unique index
       if (await this.db.findOne('Player', {
         where: { _id }
       })) return
-      // TODO: use unique index
+      if (await this.db.findOne('Game', {
+        where: {
+          outcome: null,
+          OR: [
+            { white: _id },
+            { black: _id },
+          ]
+        }
+      }))
+        return
       _db.create('Player', {
         _id,
         rating: 800
