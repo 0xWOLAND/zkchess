@@ -38,8 +38,9 @@ class PlayerQueue {
             { blackPlayerId: _id },
           ]
         }
-      }))
-        return
+      })) {
+        throw new Error('Cannot join queue while in game')
+      }
       if (!await this.db.findOne('Player', {
         where: {
           _id,
