@@ -8,41 +8,44 @@ class PlayerQueue {
   constructor() {
     (async () => {
       for (;;) {
-        await this.buildMatches();
         await new Promise((r) => setTimeout(r, 1000));
+        await this.buildMatches();
       }
     })();
   }
 
-  async get(_id) {
-    return await this.db.findOne("Player", { where: { _id } });
-  }
   async add(_id) {
-    if (this.get(_id)) return;
-    await this.db.create("Player", {
-      _id,
-      rating: 800,
-    });
-  }
-
-  async pop(_id) {
-    const player = this.get(_id);
-    this.db.delete("Player", {
-      where: {
+    await this.db.transaction(async _db => {
+      if (await this.db.findOne('Player', {
+        where: { _id }
+      })) return
+      // TODO: use unique index
+      _db.create('Player', {
         _id,
-      },
-    });
-    return player;
+        rating: 800
+      })
+    })
   }
 
   async buildMatches() {
-    let queue = this.db.findMany("Player", {});
-    while (queue.length >= 2) {
-      queue.sort((p1, p2) => p1.rating < p2.rating);
-
-      const white = this.pop(queue[0]);
-      const black = this.pop(queue[1]);
-
+    const gamePlayers = []
+    await this.db.transaction(async _db => {
+      const queue = await this.db.findMany("Player", {});
+      // queue.sort((p1, p2) => p1.rating < p2.rating);
+      const toRemove = []
+      while (queue.length >= 2) {
+        const white = queue.pop()._id;
+        const black = queue.pop()._id;
+        toRemove.push(white, black)
+        gamePlayers.push({ white, black })
+      }
+      _db.delete('Player', {
+        where: {
+          _id: toRemove
+        }
+      })
+    })
+    for (const { white, black } of gamePlayers) {
       const game = await this.db.create("Game", {
         white,
         black,

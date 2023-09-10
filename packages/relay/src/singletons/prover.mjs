@@ -28,10 +28,11 @@ export default {
     if (vkeyCache[circuitName]) {
       vkey = vkeyCache[circuitName]
     } else {
-      const url = new URL(`${circuitName}.vkey.json`, KEY_SERVER)
-      vkey = await fetch(url.toString()).then((r) => r.json())
+      const vkeyData = await fs.readFile(path.join(buildPath, `${circuitName}.vkey.json`))
+      vkey = JSON.parse(vkeyData.toString())
       vkeyCache[circuitName] = vkey
     }
     return snarkjs.groth16.verify(vkey, publicSignals, proof)
   },
 }
+

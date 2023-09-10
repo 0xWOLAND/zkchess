@@ -2,6 +2,7 @@ import { makeAutoObservable } from 'mobx'
 import { ethers } from 'ethers'
 import { Identity } from '@semaphore-protocol/identity'
 import { UserState, schema } from '@unirep/core'
+import { BaseProof } from '@unirep/circuits'
 import { provider, UNIREP_ADDRESS, APP_ADDRESS, SERVER } from '../config'
 import prover from './prover'
 import { fromRpcSig, hashPersonalMessage, ecrecover } from '@ethereumjs/util'
@@ -117,10 +118,10 @@ export default class Auth {
       identity_secret: identity.secret,
     }
     const { proof, publicSignals } = await prover.genProofAndPublicSignals('proveElo', circuitInputs)
+    const eloProof = new BaseProof(publicSignals, proof)
     // now we have the UST proof and elo proof
     // send them to the server to find a game
-    console.log(proof)
-    return { ustProof, eloProof: { proof, publicSignals } }
+    return { ustProof, eloProof }
   }
 
 }

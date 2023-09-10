@@ -44,8 +44,8 @@ export default class Game {
         proof: ustProof.proof.map(v => v.toString()),
       },
       eloProof: {
-        // publicSignals: eloProof.publicSignals.map(v => v.toString()),
-        // proof: eloProof.proof.map(v => v.toString()),
+        publicSignals: eloProof.publicSignals.map(v => v.toString()),
+        proof: eloProof.proof.map(v => v.toString()),
       }
     });
   }
