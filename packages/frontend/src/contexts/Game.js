@@ -92,9 +92,13 @@ export default class Game {
   }
 
   async resign() {
+    const resignProof = await this.state.auth.signMove(
+      'resign',
+      this.activeGame.startedAtEpoch + 1
+    );
     const { data } = await this.state.msg.client.send("game.resign", {
       gameId: this.activeGame._id,
-      color: this.color,
+      ...resignProof,
     });
     console.log("resigned...");
   }

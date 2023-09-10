@@ -128,12 +128,36 @@ export default ({ wsApp, db, synchronizer }) => {
 
   wsApp.handle("game.resign", async (data, send, next) => {
     console.log("resign data -- ", data);
-    const { gameId, color } = data;
+    const { gameId, publicSignals, proof } = data;
     const game = await db.findOne("Game", {
       where: {
         _id: gameId,
       },
     });
+    if (!game) {
+      send('no game found', 1)
+      return
+    }
+    {
+      const _proof = new BaseProof(publicSignals, proof);
+      await prover.verifyProof(
+        "signMove",
+        _proof.publicSignals,
+        _proof._snarkProof
+      );
+    }
+    if (publicSignals[0] !== game.whitePlayerId && publicSignals[0] !== game.blackPlayerId) {
+      send(`incorrect player id`, 1);
+      return;
+    }
+    const resign = Buffer.from(
+      BigInt(publicSignals[1]).toString(16),
+      "hex"
+    ).toString("utf8");
+    if (resign !== 'resign') {
+      send('bad sig', 1)
+      return
+    }
     const position = new Position(game.position);
 
     const { black, white } = await handleGameEnd(
@@ -144,7 +168,7 @@ export default ({ wsApp, db, synchronizer }) => {
       {
         agreedToDraw: false,
         resign: true,
-        color,
+        color: publicSignals[0] === game.whitePlayerId ? 'w' : 'b',
       }
     );
     wsApp.broadcast(gameId, {

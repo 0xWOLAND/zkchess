@@ -71,23 +71,23 @@ export default observer(() => {
           {flipped ? (
             <>
               <div>
-                <div>white rating: {game.activeGame?.white?.rating} elo</div>
-                <div>white timer: {whiteMoveTimer}</div>
+                <div>rating: {game.activeGame?.white?.rating} elo</div>
+                <div>timer: {whiteMoveTimer}</div>
               </div>
               <div>
-                <div>black rating: {game.activeGame?.black?.rating} elo</div>
-                <div>black timer: {blackMoveTimer}</div>
+                <div>rating: {game.activeGame?.black?.rating} elo</div>
+                <div>timer: {blackMoveTimer}</div>
               </div>
             </>
           ) : (
             <>
               <div>
-                <div>black rating: {game.activeGame?.black?.rating} elo</div>
-                <div>black timer: {blackMoveTimer}</div>
+                <div>rating: {game.activeGame?.black?.rating} elo</div>
+                <div>timer: {blackMoveTimer}</div>
               </div>
               <div>
-                <div>white rating: {game.activeGame?.white?.rating} elo</div>
-                <div>white timer: {whiteMoveTimer}</div>
+                <div>rating: {game.activeGame?.white?.rating} elo</div>
+                <div>timer: {whiteMoveTimer}</div>
               </div>
             </>
           )}
@@ -98,23 +98,18 @@ export default observer(() => {
           onMovePlayed={(move) => game.playMove(move)}
           position={game.activeGame?.position ?? new Position("start")}
         />
+      </div>
+      <div style={{ height: '10px' }} />
+      {game.activeGame?.outcome ? (
+        <div>Game over: {game.activeGame?.outcome}</div>
+      ) : (
         <button
           disabled={game.activeGame?.outcome != null}
           onClick={async () => await game.resign()}
         >
           Resign
         </button>
-        <button
-          disabled={game.activeGame?.outcome != null}
-          id="draw"
-          onClick={async () => await game.draw()}
-        >
-          Draw
-        </button>
-      </div>
-      {game.activeGame?.outcome ? (
-        <div>Game over: {game.activeGame?.outcome}</div>
-      ) : null}
+      )}
     </div>
   );
 });
