@@ -1,8 +1,9 @@
 class PlayerQueue {
   // string[]
-  configure(db, wsApp) {
+  configure(db, wsApp, synchronizer) {
     this.db = db;
     this.wsApp = wsApp;
+    this.synchronizer = synchronizer
   }
 
   constructor() {
@@ -70,6 +71,7 @@ class PlayerQueue {
         black: black._id,
         black_current_epk: black.currentEpk,
         black_next_epk: black.nextEpk,
+        startedAtEpoch: synchronizer.calcCurrentEpoch(),
       });
       this.wsApp.broadcast("newGame", {
         gameId: game._id,

@@ -74,6 +74,10 @@ export default [
         name: "black_next_epk",
         type: "String",
       },
+      {
+        name: 'startedAtEpoch',
+        type: "Int"
+      },
       // 'w' for white victory, 'b' for black victory, 'd' for draw
       ["outcome", "String", { optional: true }],
       {

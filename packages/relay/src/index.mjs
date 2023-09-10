@@ -47,7 +47,7 @@ let wsApp, httpApp;
   httpApp = app;
 }
 
-PlayerQueue.configure(db, wsApp)
+PlayerQueue.configure(db, wsApp, synchronizer)
 
 const state = { app: httpApp, wsApp, db, synchronizer };
 await importFunctionDirectory("routes", state);
