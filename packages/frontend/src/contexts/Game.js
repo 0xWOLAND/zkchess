@@ -26,29 +26,14 @@ export default class Game {
     this.joinProofs = await this.state.auth.proveElo();
   }
 
-  async load() {
-    await new Promise((r) => setTimeout(r, 10));
-    this.state.msg.client.listen(
-      "newGame",
-      async ({ data: { gameId, white, black } }) => {
-        console.log("starting game", gameId, white, black);
-        if (this.playerId != white && this.playerId != black) return;
-        this.color = this.playerId === white ? "w" : "b";
-        const { data } = await this.state.msg.client.send("game.load", {
-          gameId,
-        });
-        this.activeGame = data;
-        this.state.msg.client.listen(gameId, ({ data }) => {
-          this.activeGame = data;
-        });
-      }
-    );
-  }
+  async load() {}
 
   async joinGame(gameId) {
+    if (!gameId) return
     const { data } = await this.state.msg.client.send("game.load", {
       gameId,
     });
+    this.color = this.playerId === data.blackPlayerId ? "b" : "w";
     this.activeGame = data
     this.state.msg.client.listen(gameId, ({ data }) => {
       if (this.activeGame?._id !== data._id) return
