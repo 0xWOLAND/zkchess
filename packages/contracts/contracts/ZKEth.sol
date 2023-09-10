@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import { Unirep } from "@unirep/contracts/Unirep.sol";
-import { EIP712Decoder, SemaphoreKey, EIP712DOMAIN_TYPEHASH, SEMAPHOREKEY_TYPEHASH } from './EIP712.sol';
+import {Unirep} from "@unirep/contracts/Unirep.sol";
+import {EIP712Decoder, SemaphoreKey, EIP712DOMAIN_TYPEHASH, SEMAPHOREKEY_TYPEHASH} from "./EIP712.sol";
 
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
@@ -19,7 +19,6 @@ interface IVerifier {
 }
 
 contract ZKEth is EIP712Decoder {
-
     // IVerifier immutable signupWithAddressVerifier;
     // IVerifier immutable signupNonAnonVerifier;
 
@@ -27,10 +26,7 @@ contract ZKEth is EIP712Decoder {
 
     // bytes32 public immutable domainHash;
 
-    constructor(
-        Unirep _unirep,
-        IVerifier _signupNonAnonVerifier
-    ) {
+    constructor(Unirep _unirep, IVerifier _signupNonAnonVerifier) {
         // set unirep address
         unirep = _unirep;
 
@@ -70,10 +66,7 @@ contract ZKEth is EIP712Decoder {
         uint256[] memory publicSignals,
         uint256[8] memory proof
     ) public {
-        unirep.userSignUp(
-            publicSignals,
-            proof
-        );
+        unirep.userSignUp(publicSignals, proof);
     }
 
     // function signup(
@@ -108,4 +101,8 @@ contract ZKEth is EIP712Decoder {
     //         init
     //     );
     // }
+
+    function attest(uint256 epochKey, uint48 epoch, uint eloChange) public {
+        unirep.attest(epochKey, epoch, 0, eloChange);
+    }
 }
