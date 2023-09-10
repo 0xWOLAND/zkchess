@@ -60,14 +60,7 @@ export default observer(({ onDone }) => {
               async ({ data: { gameId, white, black } }) => {
                 console.log('found game!')
                 if (game.playerId != white && game.playerId != black) return;
-                const { data } = await msg.client.send("game.load", {
-                  gameId,
-                });
-                game.activeGame = data
-                msg.client.listen(gameId, ({ data }) => {
-                  game.activeGame = data
-                });
-                navigate('/game')
+                navigate(`/game/${gameId}`)
               }
             );
             console.log('building zk proof')

@@ -13,7 +13,7 @@ export default function App() {
         <Route path="/" element={<Header />}>
           <Route index element={<Home />} />
         </Route>
-        <Route path="/game" element={<Header />}>
+        <Route path="/game/:gameId" element={<Header />}>
           <Route index element={<Game />} />
         </Route>
       </Routes>

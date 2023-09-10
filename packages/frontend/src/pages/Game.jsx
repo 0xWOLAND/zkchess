@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { observer } from "mobx-react-lite";
 import state from "../contexts/state";
 import { Chessboard } from "kokopu-react";
@@ -7,6 +7,11 @@ import { Position } from "kokopu";
 
 export default observer(() => {
   const { ui, msg, game } = React.useContext(state);
+  const { gameId } = useParams()
+
+  React.useEffect(() => {
+    game.joinGame(gameId)
+  }, [])
 
   return (
     <div>

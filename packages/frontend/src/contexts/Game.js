@@ -45,6 +45,17 @@ export default class Game {
     );
   }
 
+  async joinGame(gameId) {
+    const { data } = await this.state.msg.client.send("game.load", {
+      gameId,
+    });
+    this.activeGame = data
+    this.state.msg.client.listen(gameId, ({ data }) => {
+      if (this.activeGame?._id !== data._id) return
+      this.activeGame = data
+    });
+  }
+
   async loadGames() {
     const { data } = await this.state.msg.client.send("game.list");
     this.activeGames = data;
