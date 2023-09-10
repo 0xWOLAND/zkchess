@@ -11,15 +11,6 @@ export default observer(() => {
   return (
     <div>
       <div>active game: {game.activeGame?._id}</div>
-      <div>
-        <button
-          onClick={() => {
-            game.joinQueue();
-          }}
-        >
-          Join game
-        </button>
-      </div>
       <Chessboard
         interactionMode="playMoves"
         onMovePlayed={(move) => game.playMove(move)}

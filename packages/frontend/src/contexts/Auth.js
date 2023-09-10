@@ -121,7 +121,7 @@ export default class Auth {
     const eloProof = new BaseProof(publicSignals, proof)
     // now we have the UST proof and elo proof
     // send them to the server to find a game
-    return { ustProof, eloProof }
+    return { ustProof, eloProof, epoch: currentEpoch }
   }
 
 }

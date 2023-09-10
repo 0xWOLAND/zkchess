@@ -5,7 +5,7 @@ import "./home.css";
 import Tooltip from "../components/Tooltip";
 import Button from "../components/Button";
 import Compose from "../components/Compose";
-import CreateGroup from "../components/CreateGroup";
+import Queue from "../components/Queue";
 import { SERVER } from "../config";
 import MessageCell from "../components/MessageCell";
 
@@ -16,23 +16,19 @@ export default observer(() => {
   const [showingCreatePopup, setShowingCreatePopup] = React.useState(false);
   const navigate = useNavigate();
 
-  async function joinQueue() {
-    navigate("/game");
-  }
-
   return (
     <div className="container">
-      <div>Chess!</div>
+      <div>ZK Chess!</div>
       <button
         type="button"
         onClick={async () => {
-          await joinQueue();
+          setShowingCreatePopup(true)
         }}
       >
-        Join Match
+        Play!
       </button>
       {showingCreatePopup ? (
-        <CreateGroup onDone={() => setShowingCreatePopup(false)} />
+        <Queue onDone={() => setShowingCreatePopup(false)} />
       ) : null}
       <div style={{ flex: 1 }} />
       <div

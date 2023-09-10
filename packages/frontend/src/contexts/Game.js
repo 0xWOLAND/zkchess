@@ -6,11 +6,23 @@ export default class Game {
   activeGame = null;
   position = null;
   activeGames = [];
+  joinProofs = null
 
   constructor(state) {
     makeAutoObservable(this);
     this.state = state;
     this.load();
+  }
+
+  get playerId() {
+    if (!this.joinProofs?.eloProof?.publicSignals[0]) {
+      return null
+    }
+    return this.joinProofs.eloProof.publicSignals[0].toString()
+  }
+
+  async buildJoinProofs() {
+    this.joinProofs = await this.state.auth.proveElo()
   }
 
   async load() {
@@ -36,9 +48,19 @@ export default class Game {
     this.activeGames = data;
   }
 
+  async leaveQueue() {
+    if (!this.playerId) return
+    await this.state.msg.client.send("queue.leave", {
+      playerId: this.playerId,
+    })
+  }
+
   async joinQueue() {
-    const { ustProof, eloProof } = await this.state.auth.proveElo()
-    this.playerId = ustProof.publicSignals[1].toString()
+    if (!this.joinProofs) throw new Error('no join proofs built')
+    const { ustProof, eloProof, epoch } = this.joinProofs
+    if (this.state.auth.userState?.sync?.calcCurrentEpoch() !== epoch) {
+      throw new Error('join proofs epoch mismatch')
+    }
     await this.state.msg.client.send("queue.join", {
       ustProof: {
         publicSignals: ustProof.publicSignals.map(v => v.toString()),

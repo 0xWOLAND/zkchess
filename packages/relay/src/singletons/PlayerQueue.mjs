@@ -15,6 +15,14 @@ class PlayerQueue {
     })();
   }
 
+  async remove(playerId) {
+    await this.db.delete('PlayerQueue', {
+      where: {
+        playerId,
+      }
+    })
+  }
+
   async add({
     _id,
     rating,
@@ -45,9 +53,11 @@ class PlayerQueue {
           epoch: this.synchronizer.calcCurrentEpoch()
         })
       }
-      _db.create('PlayerQueue', {
-        playerId: _id,
-      })
+      if (!await this.db.findOne('PlayerQueue', { where: { playerId: _id }})) {
+        _db.create('PlayerQueue', {
+          playerId: _id,
+        })
+      }
     })
   }
 
