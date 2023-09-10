@@ -45,6 +45,7 @@ export default ({ wsApp, db, synchronizer }) => {
       rating: Number(BigInt(eloProof.publicSignals[1])),
       currentEpk: eloProof.publicSignals[3].toString(),
       nextEpk: eloProof.publicSignals[2].toString(),
+      epoch: Number(eloProof.publicSignals[4]) - 1
     });
     send(0);
   });

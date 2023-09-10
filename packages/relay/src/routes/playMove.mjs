@@ -3,28 +3,28 @@ import { APP_ADDRESS } from "../config.mjs";
 import { ethers } from "ethers";
 import { createRequire } from "module";
 import TransactionManager from "../singletons/TransactionManager.mjs";
+import { F } from '@unirep/utils'
 
 const require = createRequire(import.meta.url);
 const UnirepAppABI = require("@zketh/contracts/abi/ZKEth.json");
 
-const SNARK_SCALAR_FIELD = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
-
 const handleGameEnd = async (position, game, db, synchronizer) => {
   let outcome;
-  const white = await db.findOne("Player", { where: { _id: game.white } });
-  const black = await db.findOne("Player", { where: { _id: game.black } });
+  const white = await db.findOne("Player", { where: { _id: game.whitePlayerId } });
+  const black = await db.findOne("Player", { where: { _id: game.blackPlayerId } });
   // update player ratings
   let eloChange =
-    1.0 / (1.0 + Math.pow(10, (white.rating - black.rating) / 400));
+    Math.ceil(1.0 / (1.0 + Math.pow(10, (white.rating - black.rating) / 400)))
   if (position.isStalemate() || position.isDead()) {
     outcome = "d";
-    eloChange *= 0.3;
+    eloChange = Math.floor(eloChange * 0.3);
   } else if (position.isCheckmate()) {
     // player to move has lost
     outcome = position.turn() === "w" ? "b" : "w";
   } else return outcome;
 
-  eloChange = (eloChange + SNARK_SCALAR_FIELD) % SNARK_SCALAR_FIELD;
+  const winnerElo = (BigInt(eloChange) + F) % F
+  const loserElo = (F - BigInt(eloChange)) % F
 
   console.log("attesting contracts...");
   const contract = new ethers.Contract(APP_ADDRESS, UnirepAppABI);
@@ -35,7 +35,7 @@ const handleGameEnd = async (position, game, db, synchronizer) => {
       currentEpk,
       nextEpk,
       epoch,
-      eloChange,
+      (outcome === 'w' || outcome === 'd') ? winnerElo : loserElo,
     ]);
 
     await TransactionManager.queueTransaction(APP_ADDRESS, calldata);
@@ -47,7 +47,7 @@ const handleGameEnd = async (position, game, db, synchronizer) => {
       currentEpk,
       nextEpk,
       epoch,
-      eloChange,
+      (outcome === 'b' || outcome === 'd') ? winnerElo : loserElo,
     ]);
 
     await TransactionManager.queueTransaction(APP_ADDRESS, calldata);

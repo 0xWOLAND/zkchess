@@ -67,9 +67,19 @@ export default class Auth {
   }
 
   async loadRating() {
-    const data = await this.userState.getData()
-    const rating = (data[0] + 800n + F) % F
-    this.rating = rating
+    const currentEpoch = this.userState.sync.calcCurrentEpoch()
+    const data = await this.userState.getData(currentEpoch)
+    let rating = (data[0] + 800n + F) % F
+    const attestations = await this.userState.sync.db.findMany('Attestation', {
+      where: {
+        epochKey: (await this.userState.getEpochKeys(currentEpoch, 0)).toString(),
+        fieldIndex: 0
+      },
+    });
+    for (const { change } of attestations) {
+      rating += BigInt(change)
+    }
+    this.rating = rating % F
   }
 
   async watchTransition() {

@@ -27,7 +27,8 @@ class PlayerQueue {
     _id,
     rating,
     currentEpk,
-    nextEpk
+    nextEpk,
+    epoch,
   }) {
     await this.db.transaction(async _db => {
       if (await this.db.findOne('Game', {
@@ -51,7 +52,7 @@ class PlayerQueue {
           rating,
           currentEpk,
           nextEpk,
-          epoch: this.synchronizer.calcCurrentEpoch()
+          epoch,
         })
       }
       if (!await this.db.findOne('PlayerQueue', { where: { playerId: _id }})) {
