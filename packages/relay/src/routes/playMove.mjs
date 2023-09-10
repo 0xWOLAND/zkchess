@@ -4,29 +4,53 @@ import { ethers } from "ethers";
 import { createRequire } from "module";
 import TransactionManager from "../singletons/TransactionManager.mjs";
 import { BaseProof } from "@unirep/circuits";
-import { F } from '@unirep/utils'
-import prover from "../singletons/prover.mjs"
+import { F } from "@unirep/utils";
+import prover from "../singletons/prover.mjs";
 
 const require = createRequire(import.meta.url);
 const UnirepAppABI = require("@zketh/contracts/abi/ZKEth.json");
 
-const handleGameEnd = async (position, game, db, synchronizer) => {
+export const handleGameEnd = async (
+  position,
+  game,
+  db,
+  synchronizer,
+  { agreedToDraw, resign, color }
+) => {
   let outcome;
-  const white = await db.findOne("Player", { where: { _id: game.whitePlayerId } });
-  const black = await db.findOne("Player", { where: { _id: game.blackPlayerId } });
+  const white = await db.findOne("Player", {
+    where: { _id: game.whitePlayerId },
+  });
+  const black = await db.findOne("Player", {
+    where: { _id: game.blackPlayerId },
+  });
   // update player ratings
-  let eloChange =
-    Math.ceil(1.0 / (1.0 + Math.pow(10, (white.rating - black.rating) / 400)))
-  if (position.isStalemate() || position.isDead()) {
+  let eloChange = Math.ceil(
+    1.0 / (1.0 + Math.pow(10, (white.rating - black.rating) / 400))
+  );
+  if (position.isStalemate() || position.isDead() || agreedToDraw) {
     outcome = "d";
     eloChange = Math.floor(eloChange * 0.3);
   } else if (position.isCheckmate()) {
     // player to move has lost
     outcome = position.turn() === "w" ? "b" : "w";
-  } else return { outcome, white, black };
+  } else if (resign) {
+    outcome = color === "b" ? "w" : "b";
+  } else return { white, black };
 
-  const winnerElo = (BigInt(eloChange) + F) % F
-  const loserElo = (F - BigInt(eloChange)) % F
+  const n = await db.update("Game", {
+    where: {
+      _id: game._id,
+    },
+    update: {
+      position: position.fen(),
+      lastMoveAt: +new Date(),
+      ...(outcome ? { outcome } : {}),
+    },
+  });
+
+  const winnerElo = (BigInt(eloChange) + F) % F;
+  const loserElo = (F - BigInt(eloChange)) % F;
 
   console.log("attesting contracts...");
   const contract = new ethers.Contract(APP_ADDRESS, UnirepAppABI);
@@ -37,7 +61,7 @@ const handleGameEnd = async (position, game, db, synchronizer) => {
       currentEpk,
       nextEpk,
       epoch,
-      (outcome === 'w' || outcome === 'd') ? winnerElo : loserElo,
+      outcome === "w" || outcome === "d" ? winnerElo : loserElo,
     ]);
 
     await TransactionManager.queueTransaction(APP_ADDRESS, calldata);
@@ -49,17 +73,87 @@ const handleGameEnd = async (position, game, db, synchronizer) => {
       currentEpk,
       nextEpk,
       epoch,
-      (outcome === 'b' || outcome === 'd') ? winnerElo : loserElo,
+      outcome === "b" || outcome === "d" ? winnerElo : loserElo,
     ]);
 
     await TransactionManager.queueTransaction(APP_ADDRESS, calldata);
   }
   console.log("finished game");
-
-  return { outcome, white, black };
+  return { black, white };
 };
 
 export default ({ wsApp, db, synchronizer }) => {
+  wsApp.handle("game.draw", async (data, send, next) => {
+    const { gameId, color } = data;
+    const game = await db.findOne("Game", {
+      where: {
+        _id: gameId,
+      },
+    });
+
+    const agreedToDraw = game.draw && draw;
+    if (!game.draw && draw) {
+      await db.findOne("Game", {
+        where: {
+          _id: gameId,
+          draw: 1,
+        },
+      });
+    } else {
+      await db.update("Game", {
+        where: {
+          _id: gameId,
+          draw: 0,
+        },
+      });
+    }
+    const position = new Position(game.position);
+    const { black, white } = await handleGameEnd(
+      position,
+      game,
+      db,
+      synchronizer,
+      {
+        agreedToDraw,
+        resign: false,
+        color,
+      }
+    );
+    wsApp.broadcast(gameId, {
+      ...(await db.findOne("Game", { where: { _id: gameId } })),
+      black,
+      white,
+    });
+  });
+
+  wsApp.handle("game.resign", async (data, send, next) => {
+    console.log("resign data -- ", data);
+    const { gameId, color } = data;
+    const game = await db.findOne("Game", {
+      where: {
+        _id: gameId,
+      },
+    });
+    const position = new Position(game.position);
+
+    const { black, white } = await handleGameEnd(
+      position,
+      game,
+      db,
+      synchronizer,
+      {
+        agreedToDraw: false,
+        resign: true,
+        color,
+      }
+    );
+    wsApp.broadcast(gameId, {
+      ...(await db.findOne("Game", { where: { _id: gameId } })),
+      black,
+      white,
+    });
+  });
+
   wsApp.handle("game.playMove", async (data, send, next) => {
     const { publicSignals, proof, gameId } = data;
     if (!gameId) {
@@ -71,12 +165,13 @@ export default ({ wsApp, db, synchronizer }) => {
         _id: gameId,
       },
     });
+
     if (!game) {
       send(`no game found for id "${gameId}`, 1);
       return;
     }
     {
-      const _proof = new BaseProof(publicSignals, proof)
+      const _proof = new BaseProof(publicSignals, proof);
       await prover.verifyProof(
         "signMove",
         _proof.publicSignals,
@@ -85,23 +180,34 @@ export default ({ wsApp, db, synchronizer }) => {
     }
     const position = new Position(game.position);
 
-    const whiteToMove = position.turn() === 'w'
-    const expectedPlayerId = whiteToMove ? game.whitePlayerId : game.blackPlayerId
+    const whiteToMove = position.turn() === "w";
+    const expectedPlayerId = whiteToMove
+      ? game.whitePlayerId
+      : game.blackPlayerId;
     if (publicSignals[0] !== expectedPlayerId) {
-      send(`incorrect player id`, 1)
-      return
+      send(`incorrect player id`, 1);
+      return;
     }
-    const move = Buffer.from(BigInt(publicSignals[1]).toString(16), 'hex').toString('utf8')
+    const move = Buffer.from(
+      BigInt(publicSignals[1]).toString(16),
+      "hex"
+    ).toString("utf8");
     if (!position.play(move)) {
       // move is illegal or string is invalid
       console.log("illegal move");
       send(`invalid or illegal move ${move}`, 1);
       return;
     }
-    const { outcome, black, white } = await handleGameEnd(position, game, db, synchronizer);
+    const { black, white, outcome } = await handleGameEnd(
+      position,
+      game,
+      db,
+      synchronizer,
+      { agreedToDraw: false, resign: false }
+    );
 
-    const now = +new Date()
-    const moveTime = now - game.lastMoveAt
+    const now = +new Date();
+    const moveTime = now - game.lastMoveAt;
 
     const n = await db.update("Game", {
       where: {
@@ -110,9 +216,9 @@ export default ({ wsApp, db, synchronizer }) => {
       update: {
         position: position.fen(),
         lastMoveAt: now,
-        ...(
-          whiteToMove ? { whitePlayerTime: game.whitePlayerTime - moveTime } :
-          {blackPlayerTime: game.blackPlayerTime - moveTime}),
+        ...(whiteToMove
+          ? { whitePlayerTime: game.whitePlayerTime - moveTime }
+          : { blackPlayerTime: game.blackPlayerTime - moveTime }),
         ...(outcome ? { outcome } : {}),
       },
     });
@@ -121,12 +227,10 @@ export default ({ wsApp, db, synchronizer }) => {
       return;
     }
     send("", 0);
-    wsApp.broadcast(
-      gameId,
-      {
-        ...(await db.findOne("Game", { where: { _id: gameId } })),
-        black, white,
-      }
-    );
+    wsApp.broadcast(gameId, {
+      ...(await db.findOne("Game", { where: { _id: gameId } })),
+      black,
+      white,
+    });
   });
 };
