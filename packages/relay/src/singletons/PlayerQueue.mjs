@@ -8,8 +8,8 @@ class PlayerQueue {
   constructor() {
     (async () => {
       for (;;) {
-        await this.buildMatches();
         await new Promise((r) => setTimeout(r, 1000));
+        await this.buildMatches();
       }
     })();
   }
@@ -17,8 +17,23 @@ class PlayerQueue {
   async get(_id) {
     return await this.db.findOne("Player", { where: { _id } });
   }
+
   async add(_id) {
+    // already in queue
     if (this.get(_id)) return;
+    // currently in match
+    const game = await this.db.findOne("Game", {
+      where: {
+        AND: {
+          OR: [
+            { white: _id, outcome: null },
+            { black: _id, outcome: null },
+          ],
+        },
+      },
+    });
+    if (game) return;
+
     await this.db.create("Player", {
       _id,
       rating: 800,
