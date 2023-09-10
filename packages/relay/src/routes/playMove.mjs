@@ -21,7 +21,7 @@ const handleGameEnd = async (position, game, db, synchronizer) => {
   } else if (position.isCheckmate()) {
     // player to move has lost
     outcome = position.turn() === "w" ? "b" : "w";
-  } else return outcome;
+  } else return { outcome, white, black };
 
   const winnerElo = (BigInt(eloChange) + F) % F
   const loserElo = (F - BigInt(eloChange)) % F
@@ -54,7 +54,7 @@ const handleGameEnd = async (position, game, db, synchronizer) => {
   }
   console.log("finished game");
 
-  return outcome;
+  return { outcome, white, black };
 };
 
 export default ({ wsApp, db, synchronizer }) => {
@@ -79,7 +79,7 @@ export default ({ wsApp, db, synchronizer }) => {
       send(`invalid or illegal move ${move}`, 1);
       return;
     }
-    const outcome = await handleGameEnd(position, game, db, synchronizer);
+    const { outcome, black, white } = await handleGameEnd(position, game, db, synchronizer);
 
     const n = await db.update("Game", {
       where: {
@@ -98,7 +98,10 @@ export default ({ wsApp, db, synchronizer }) => {
     send(0);
     wsApp.broadcast(
       gameId,
-      await db.findOne("Game", { where: { _id: gameId } })
+      {
+        ...(await db.findOne("Game", { where: { _id: gameId } })),
+        black, white,
+      }
     );
   });
 };

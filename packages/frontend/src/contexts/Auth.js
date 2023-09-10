@@ -85,27 +85,38 @@ export default class Auth {
   async watchTransition() {
     for (;;) {
       const time = this.userState.sync.calcEpochRemainingTime()
+      console.log(time)
       const hasSignedUp = await this.userState.hasSignedUp()
+      console.log(hasSignedUp)
       if (!hasSignedUp) {
         await new Promise(r => setTimeout(r, time * 1000))
         continue
       }
       const epoch = await this.userState.latestTransitionedEpoch()
+      console.log(epoch, this.userState.sync.calcCurrentEpoch())
       try {
         if (
           hasSignedUp &&
           epoch != this.userState.sync.calcCurrentEpoch()
         ) {
-          await this.stateTransition()
+          console.log('transitioning')
+          const ustProof = await this.userState.genUserStateTransitionProof()
+          const { data } = await this.state.msg.client.send('user.transition', {
+            publicSignals: ustProof.publicSignals.map(v => v.toString()),
+            proof: ustProof.proof.map(v => v.toString()),
+          })
+          await provider.waitForTransaction(data.hash)
         } else if (epoch != this.userState.sync.calcCurrentEpoch()) {
           await new Promise(r => setTimeout(r, 2000))
           continue
         }
       } catch (err) {
+        console.log(err)
         await new Promise(r => setTimeout(r, 10000))
         continue
       }
       await new Promise(r => setTimeout(r, time * 1000))
+      console.log('epoch ended')
     }
   }
 

@@ -1,6 +1,7 @@
 import PlayerQueue from "../singletons/PlayerQueue.mjs";
 import { BaseProof, UserStateTransitionProof } from "@unirep/circuits";
 import prover from "../singletons/prover.mjs";
+import { F } from '@unirep/utils'
 
 export default ({ wsApp, db, synchronizer }) => {
   wsApp.handle("queue.leave", async (data, send, next) => {
@@ -38,11 +39,18 @@ export default ({ wsApp, db, synchronizer }) => {
       send("state tree leaf mismatch", 1);
       return;
     }
+    const playerId = eloProof.publicSignals[0].toString()
+    await db.create('PendingUST', {
+      data: JSON.stringify(_ustProof),
+      playerId,
+      toEpoch: Number(eloProof.publicSignals[4])
+    })
+    const rating = (800n + BigInt(eloProof.publicSignals[1])) % F
 
     // new state tree leaf
     await PlayerQueue.add({
-      _id: eloProof.publicSignals[0].toString(),
-      rating: Number(BigInt(eloProof.publicSignals[1])),
+      _id: playerId,
+      rating: Number(rating),
       currentEpk: eloProof.publicSignals[3].toString(),
       nextEpk: eloProof.publicSignals[2].toString(),
       epoch: Number(eloProof.publicSignals[4]) - 1

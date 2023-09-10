@@ -1,3 +1,6 @@
+import { UserStateTransitionProof } from "@unirep/circuits";
+import TransactionManager from './TransactionManager.mjs'
+
 class PlayerQueue {
   // string[]
   configure(db, wsApp, synchronizer) {
@@ -9,10 +12,56 @@ class PlayerQueue {
   constructor() {
     (async () => {
       for (;;) {
+        await new Promise((r) => setTimeout(r, 5000));
+        await this.sendUST()
+      }
+    })();
+    (async () => {
+      for (;;) {
         await new Promise((r) => setTimeout(r, 1000));
         await this.buildMatches();
       }
     })();
+  }
+
+  async sendUST() {
+    const activeGames = await this.db.findMany('Game', {
+      where: {
+        outcome: null
+      }
+    })
+    const activePlayerIds = activeGames.map(({ blackPlayerId, whitePlayerId }) => [blackPlayerId, whitePlayerId]).flat()
+    await this.db.delete('PendingUST', {
+      where: {
+        playerId: { nin: activePlayerIds }
+      }
+    })
+    const pendingUSTs = await this.db.findMany('PendingUST', {
+      where: {
+        toEpoch: this.synchronizer.calcCurrentEpoch()
+      }
+    })
+
+    for (const { _id, data } of pendingUSTs) {
+      const { proof, publicSignals } = JSON.parse(data)
+      const ustProof = new UserStateTransitionProof(
+        publicSignals,
+        proof
+      );
+      const calldata = this.synchronizer.unirepContract.interface.encodeFunctionData(
+        'userStateTransition',
+        [ustProof.publicSignals, ustProof.proof]
+      )
+      await TransactionManager.queueTransaction(
+        this.synchronizer.unirepContract.address,
+        calldata
+      )
+      await this.db.delete('PendingUST', {
+        where: {
+          _id
+        }
+      })
+    }
   }
 
   async remove(playerId) {
@@ -82,6 +131,12 @@ class PlayerQueue {
           validPlayers.push(player)
         }
       }
+      // only rmeove the ones that timed out
+      await _db.delete('PendingUST', {
+        where: {
+          playerId: toRemove
+        }
+      })
       // queue.sort((p1, p2) => p1.rating < p2.rating);
       while (validPlayers.length >= 2) {
         const white = validPlayers.pop()

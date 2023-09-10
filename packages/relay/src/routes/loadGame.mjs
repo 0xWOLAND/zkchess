@@ -10,10 +10,20 @@ export default ({ wsApp, db }) => {
         _id: gameId,
       },
     });
+    const black = await db.findOne('Player', {
+      where: {
+        _id: game.blackPlayerId,
+      }
+    })
+    const white = await db.findOne('Player', {
+      where: {
+        _id: game.whitePlayerId,
+      }
+    })
     if (!game) {
       send(`no game found for id "${gameId}`, 1);
       return;
     }
-    send(game);
+    send({ ...game, black, white });
   });
 };

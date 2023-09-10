@@ -59,5 +59,19 @@ export default [
       },
       ["playerId", "String", { unique: true }],
     ],
+  },
+  {
+    name: "PendingUST",
+    primaryKey: "_id",
+    rows: [
+      {
+        name: "_id",
+        type: "String",
+        default: () => nanoid(),
+      },
+      ['toEpoch', 'Int'],
+      ["playerId", "String", { unique: true }],
+      ['data', 'String']
+    ]
   }
 ];
