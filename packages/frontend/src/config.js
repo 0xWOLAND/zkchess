@@ -4,10 +4,10 @@ import config from "../../../config";
 const prod = NODE_ENV === "production";
 
 const _UNIREP_ADDRESS = prod
-  ? "0x97404AAF461f042F2ac2Ab3aa3099BA05dAf5490"
+  ? "0x9bC4f2305D1221a57F4a96A2DAc07505c4b7137a"
   : undefined;
 const _APP_ADDRESS = prod
-  ? "0xd2bA5c8c62B5E110c3AC7A552577DfE55d8c0350"
+  ? "0x35879376A7293E75Da04C3ddDB61B8dC2E33405c"
   : undefined;
 
 export const UNIREP_ADDRESS = _UNIREP_ADDRESS ?? config.UNIREP_ADDRESS;

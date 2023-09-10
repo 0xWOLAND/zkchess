@@ -42,14 +42,13 @@ contract ZKEth is EIP712Decoder {
     }
 
     function attest(
-        address attesterId,
         uint256 currentEpochKey,
         uint256 nextEpochKey,
         uint48 epoch,
         uint eloChange
     ) public {
         require(msg.sender == owner);
-        uint48 currentEpoch = unirep.attesterCurrentEpoch(uint160(attesterId));
+        uint48 currentEpoch = unirep.attesterCurrentEpoch(uint160(address(this)));
         if (currentEpoch == epoch) {
             unirep.attest(currentEpochKey, epoch, 0, eloChange);
         } else if (currentEpoch + 1 == epoch) {

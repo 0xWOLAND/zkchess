@@ -56,8 +56,8 @@ export const handleGameEnd = async (
   const contract = new ethers.Contract(APP_ADDRESS, UnirepAppABI);
   {
     const { currentEpk, nextEpk, epoch } = white;
+    console.log(currentEpk, nextEpk, epoch)
     const calldata = contract.interface.encodeFunctionData("attest", [
-      APP_ADDRESS,
       currentEpk,
       nextEpk,
       epoch,
@@ -68,8 +68,8 @@ export const handleGameEnd = async (
   }
   {
     const { currentEpk, nextEpk, epoch } = black;
+    console.log(currentEpk, nextEpk, epoch)
     const calldata = contract.interface.encodeFunctionData("attest", [
-      APP_ADDRESS,
       currentEpk,
       nextEpk,
       epoch,

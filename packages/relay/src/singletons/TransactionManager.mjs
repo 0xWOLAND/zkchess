@@ -122,7 +122,7 @@ export class TransactionManager {
         ...args,
       })
       Object.assign(args, {
-        gasLimit: gasLimit.add(50000),
+        gasLimit: gasLimit.add(100000),
       })
     }
     const nonce = await this.getNonce(this.wallet.address)
