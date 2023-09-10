@@ -14,6 +14,7 @@ export default observer(() => {
       <div>white rating: {game.activeGame?.white?.rating} elo</div>
       <div>black rating: {game.activeGame?.black?.rating} elo</div>
       <Chessboard
+        flipped={game.color == "w"}
         interactionMode="playMoves"
         onMovePlayed={(move) => game.playMove(move)}
         position={game.activeGame?.position ?? new Position("start")}
