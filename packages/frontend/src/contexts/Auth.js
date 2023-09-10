@@ -59,11 +59,18 @@ export default class Auth {
     await userState.sync.start()
     await userState.waitForSync()
     this.hasSignedUp = await userState.hasSignedUp()
-    if (this.hasSignedUp) {
-      await this.loadRating()
-    }
     this.synced = true
     this.watchTransition()
+    this.watchRating()
+  }
+
+  async watchRating() {
+    for (;;) {
+      if (this.hasSignedUp) {
+        await this.loadRating()
+      }
+      await new Promise((r) => setTimeout(r, 2000))
+    }
   }
 
   async loadRating() {
