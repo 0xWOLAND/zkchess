@@ -23,25 +23,31 @@ export default ({ wsApp, db }) => {
       return;
     }
     let outcome;
+    const white = db.findOne("Player", { where: { _id: game.white } });
+    const black = db.findOne("Player", { where: { _id: game.black } });
+    // update player ratings
+    const ratingChange =
+      1.0 / (1.0 + Math.pow(10, (white.rating - black.rating) / 400));
     if (position.isStalemate() || position.isDead()) {
       outcome = "d";
+
+      db.update("Player", {
+        where: { _id: white.id, rating: white.rating + 0.3 * ratingChange },
+      });
+      db.update("Player", {
+        where: { _id: black.id, rating: black.rating - 0.3 * ratingChange },
+      });
     } else if (position.isCheckmate()) {
       // player to move has lost
       outcome = position.turn() === "w" ? "b" : "w";
+
+      db.update("Player", {
+        where: { _id: white.id, rating: white.rating + ratingChange },
+      });
+      db.update("Player", {
+        where: { _id: black.id, rating: black.rating - ratingChange },
+      });
     }
-
-    // update player ratings
-    const white = db.findOne("Player", { where: { _id: game.white } });
-    const black = db.findOne("Player", { where: { _id: game.black } });
-    const ratingChange =
-      1.0 / (1.0 + Math.pow(10, (white.rating - black.rating) / 400));
-
-    db.update("Player", {
-      where: { _id: white.id, rating: white.rating + ratingChange },
-    });
-    db.update("Player", {
-      where: { _id: black.id, rating: black.rating - ratingChange },
-    });
 
     const n = await db.update("Game", {
       where: {
