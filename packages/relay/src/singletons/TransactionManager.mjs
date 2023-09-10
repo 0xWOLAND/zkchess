@@ -130,9 +130,9 @@ export class TransactionManager {
     const signedData = await this.wallet.signTransaction({
       nonce,
       to,
-      // gasPrice: 2 * 10 ** 9, // 2 gwei
+      gasPrice: 1 * 10 ** 9, // 2 gwei
       // gasPrice: 10000,
-      gasPrice: 299365979,
+      // gasPrice: 299365979,
       chainId,
       ...args,
     })
