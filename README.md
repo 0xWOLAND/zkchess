@@ -1,6 +1,8 @@
-# zketh
+# zkchess
 
 A monorepo containing solidity contracts, javascript relay, javascript webapp
+
+Deployed to scroll sepolia ZKEVM [here](https://sepolia-blockscout.scroll.io/address/0x35879376A7293E75Da04C3ddDB61B8dC2E33405c/contracts#address-tabs).
 
 ### 1. Installing
 
