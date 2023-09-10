@@ -41,7 +41,6 @@ export default observer(({ onDone }) => {
           onClick={async () => {
             if (inQueue) {
               // leave queue
-              console.log('hit')
               setCanceled(true)
               setMessage('Leaving queue...')
               msg.client.listen(

@@ -11,6 +11,7 @@ import poseidon from 'poseidon-lite'
 import { TypedDataUtils } from '@metamask/eth-sig-util'
 import { IndexedDBConnector, MemoryConnector } from 'anondb/web'
 import { constructSchema } from 'anondb/types'
+import { F } from '@unirep/utils'
 // import prover from '@unirep/circuits/provers/web'
 
 export default class Auth {
@@ -25,8 +26,10 @@ export default class Auth {
   userState = null
   addressTree = null
   hasSignedUp = false
+  synced = false
 
   messages = []
+  rating = 0
 
   treeCache = {}
 
@@ -56,7 +59,17 @@ export default class Auth {
     await userState.sync.start()
     await userState.waitForSync()
     this.hasSignedUp = await userState.hasSignedUp()
+    if (this.hasSignedUp) {
+      await this.loadRating()
+    }
+    this.synced = true
     this.watchTransition()
+  }
+
+  async loadRating() {
+    const data = await this.userState.getData()
+    const rating = (data[0] + 800n + F) % F
+    this.rating = rating
   }
 
   async watchTransition() {
@@ -96,6 +109,7 @@ export default class Auth {
     await provider.waitForTransaction(data.hash)
     await this.userState.waitForSync()
     this.hasSignedUp = await this.userState.hasSignedUp()
+    await this.loadRating()
   }
 
   async proveElo() {
