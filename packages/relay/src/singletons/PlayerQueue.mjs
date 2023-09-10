@@ -14,7 +14,7 @@ class PlayerQueue {
     })();
   }
 
-  async add(_id) {
+  async add(_id, rating) {
     await this.db.transaction(async _db => {
       // TODO: use unique index
       if (await this.db.findOne('Player', {
@@ -32,7 +32,7 @@ class PlayerQueue {
         return
       _db.create('Player', {
         _id,
-        rating: 800
+        rating,
       })
     })
   }

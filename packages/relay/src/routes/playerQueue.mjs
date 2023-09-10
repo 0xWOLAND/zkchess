@@ -28,7 +28,7 @@ export default ({ wsApp, db, synchronizer }) => {
 
     // new state tree leaf
     const id = ustProof.publicSignals[1]
-    PlayerQueue.add(id.toString())
+    PlayerQueue.add(id.toString(), Number(BigInt(eloProof.publicSignals[1])))
     send(0)
   });
 };
