@@ -29,15 +29,15 @@ export default class Game {
   async load() {}
 
   async joinGame(gameId) {
-    if (!gameId) return
+    if (!gameId) return;
     const { data } = await this.state.msg.client.send("game.load", {
       gameId,
     });
     this.color = this.playerId === data.blackPlayerId ? "b" : "w";
-    this.activeGame = data
+    this.activeGame = data;
     this.state.msg.client.listen(gameId, ({ data }) => {
-      if (this.activeGame?._id !== data._id) return
-      this.activeGame = data
+      if (this.activeGame?._id !== data._id) return;
+      this.activeGame = data;
     });
   }
 
@@ -76,14 +76,34 @@ export default class Game {
     const prevPosition = g.fen();
     g.play(move);
     this.activeGame.position = g.fen();
-    const moveProof = await this.state.auth.signMove(move, this.activeGame.startedAtEpoch + 1)
+    const moveProof = await this.state.auth.signMove(
+      move,
+      this.activeGame.startedAtEpoch + 1
+    );
     try {
       const { data } = await this.state.msg.client.send("game.playMove", {
         ...moveProof,
         gameId: this.activeGame._id,
       });
-    } catch {
+    } catch (e) {
+      console.log(e);
       this.activeGame.position = prevPosition;
     }
+  }
+
+  async resign() {
+    const { data } = await this.state.msg.client.send("game.resign", {
+      gameId: this.activeGame._id,
+      color: this.color,
+    });
+    console.log("resigned...");
+  }
+
+  async draw() {
+    const { data } = await this.state.msg.client.send("game.draw", {
+      gameId: this.activeGame._id,
+      color: this.color,
+    });
+    console.log("draw...");
   }
 }

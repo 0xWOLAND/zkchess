@@ -26,18 +26,19 @@ export default [
       },
       {
         name: "blackPlayerTime",
-        type: "Int"
+        type: "Int",
       },
       {
         name: "whitePlayerTime",
-        type: "Int"
+        type: "Int",
       },
       {
-        name: 'startedAtEpoch',
-        type: "Int"
+        name: "startedAtEpoch",
+        type: "Int",
       },
       // 'w' for white victory, 'b' for black victory, 'd' for draw
       ["outcome", "String", { optional: true }],
+      ["drawOffered", "Int", { optional: true }],
       {
         name: "lastMoveAt",
         type: "Int",
@@ -49,11 +50,11 @@ export default [
     name: "Player",
     primaryKey: "_id",
     rows: [
-      ["_id", 'String'],
+      ["_id", "String"],
       ["rating", "Int"],
       ["currentEpk", "String"],
       ["nextEpk", "String"],
-      ['epoch', 'Int'],
+      ["epoch", "Int"],
     ],
   },
   {
@@ -77,9 +78,9 @@ export default [
         type: "String",
         default: () => nanoid(),
       },
-      ['toEpoch', 'Int'],
+      ["toEpoch", "Int"],
       ["playerId", "String", { unique: true }],
-      ['data', 'String']
-    ]
-  }
+      ["data", "String"],
+    ],
+  },
 ];
