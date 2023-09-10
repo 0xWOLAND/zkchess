@@ -18,6 +18,7 @@ export default class Game {
     this.state.msg.client.listen(
       "newGame",
       async ({ data: { gameId, white, black } }) => {
+        console.log('starting game', gameId, white, black)
         if (this.playerId != white && this.playerId != black) return;
         const { data } = await this.state.msg.client.send("game.load", {
           gameId,

@@ -51,27 +51,11 @@ export default [
         default: () => new Position("start").fen(),
       },
       {
-        name: "white",
+        name: "whitePlayerId",
         type: "String",
       },
       {
-        name: "white_current_epk",
-        type: "String",
-      },
-      {
-        name: "white_next_epk",
-        type: "String",
-      },
-      {
-        name: "black",
-        type: "String",
-      },
-      {
-        name: "black_current_epk",
-        type: "String",
-      },
-      {
-        name: "black_next_epk",
+        name: "blackPlayerId",
         type: "String",
       },
       {
@@ -91,14 +75,23 @@ export default [
     name: "Player",
     primaryKey: "_id",
     rows: [
+      ["_id", 'String'],
+      ["rating", "Int"],
+      ["currentEpk", "String"],
+      ["nextEpk", "String"],
+      ['epoch', 'Int'],
+    ],
+  },
+  {
+    name: "PlayerQueue",
+    primaryKey: "_id",
+    rows: [
       {
         name: "_id",
         type: "String",
         default: () => nanoid(),
       },
-      ["rating", "Int"],
-      ["currentEpk", "String"],
-      ["nextEpk", "String"],
+      ["playerId", "String", { unique: true }],
     ],
-  },
+  }
 ];

@@ -22,56 +22,72 @@ class PlayerQueue {
     nextEpk
   }) {
     await this.db.transaction(async _db => {
-      // TODO: use unique index
-      if (await this.db.findOne('Player', {
-        where: { _id }
-      })) return
       if (await this.db.findOne('Game', {
         where: {
           outcome: null,
           OR: [
-            { white: _id },
-            { black: _id },
+            { whitePlayerId: _id },
+            { blackPlayerId: _id },
           ]
         }
       }))
         return
-      _db.create('Player', {
-        _id,
-        rating,
-        currentEpk,
-        nextEpk
+      if (!await this.db.findOne('Player', {
+        where: {
+          _id,
+        }
+      })) {
+        _db.create('Player', {
+          _id,
+          rating,
+          currentEpk,
+          nextEpk,
+          epoch: this.synchronizer.calcCurrentEpoch()
+        })
+      }
+      _db.create('PlayerQueue', {
+        playerId: _id,
       })
     })
   }
 
   async buildMatches() {
+    const currentEpoch = this.synchronizer.calcCurrentEpoch()
     const gamePlayers = []
     await this.db.transaction(async _db => {
-      const queue = await this.db.findMany("Player", {});
-      // queue.sort((p1, p2) => p1.rating < p2.rating);
+      const queue = await this.db.findMany("PlayerQueue", {});
+      const players = await this.db.findMany('Player', {
+        where : {
+          _id: queue.map(v => v.playerId),
+        }
+      })
+      const validPlayers = []
       const toRemove = []
-      while (queue.length >= 2) {
-        const white = queue.pop()
-        const black = queue.pop()
+      for (const player of players) {
+        if (player.epoch !== currentEpoch) {
+          toRemove.push(player._id)
+        } else {
+          validPlayers.push(player)
+        }
+      }
+      // queue.sort((p1, p2) => p1.rating < p2.rating);
+      while (validPlayers.length >= 2) {
+        const white = validPlayers.pop()
+        const black = validPlayers.pop()
         toRemove.push(white._id, black._id)
         gamePlayers.push({ white, black })
       }
-      _db.delete('Player', {
+      _db.delete('PlayerQueue', {
         where: {
-          _id: toRemove
+          playerId: toRemove
         }
       })
     })
     for (const { white, black } of gamePlayers) {
       const game = await this.db.create("Game", {
-        white: white._id,
-        white_current_epk: white.currentEpk,
-        white_next_epk: white.nextEpk,
-        black: black._id,
-        black_current_epk: black.currentEpk,
-        black_next_epk: black.nextEpk,
-        startedAtEpoch: synchronizer.calcCurrentEpoch(),
+        whitePlayerId: white._id,
+        blackPlayerId: black._id,
+        startedAtEpoch: this.synchronizer.calcCurrentEpoch(),
       });
       this.wsApp.broadcast("newGame", {
         gameId: game._id,
