@@ -30,8 +30,8 @@ export default ({ wsApp, db, synchronizer }) => {
     await PlayerQueue.add({
       _id: eloProof.publicSignals[0].toString(),
       rating: Number(BigInt(eloProof.publicSignals[1])),
-      currentEpk: eloProof.publicSignals[2].toString(),
-      nextEpk: eloProof.publicSignals[3].toString(),
+      currentEpk: eloProof.publicSignals[3].toString(),
+      nextEpk: eloProof.publicSignals[2].toString(),
     })
     send(0)
   });
