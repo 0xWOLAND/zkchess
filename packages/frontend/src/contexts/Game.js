@@ -33,7 +33,7 @@ export default class Game {
       async ({ data: { gameId, white, black } }) => {
         console.log("starting game", gameId, white, black);
         if (this.playerId != white && this.playerId != black) return;
-        this.color = this.playerId == white ? "w" : "b";
+        this.color = this.playerId === white ? "w" : "b";
         const { data } = await this.state.msg.client.send("game.load", {
           gameId,
         });
@@ -80,10 +80,10 @@ export default class Game {
     const prevPosition = g.fen();
     g.play(move);
     this.activeGame.position = g.fen();
+    const moveProof = await this.state.auth.signMove(move, this.activeGame.startedAtEpoch + 1)
     try {
       const { data } = await this.state.msg.client.send("game.playMove", {
-        move,
-        color: this.color,
+        ...moveProof,
         gameId: this.activeGame._id,
       });
     } catch {

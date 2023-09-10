@@ -3,7 +3,9 @@ import { APP_ADDRESS } from "../config.mjs";
 import { ethers } from "ethers";
 import { createRequire } from "module";
 import TransactionManager from "../singletons/TransactionManager.mjs";
+import { BaseProof } from "@unirep/circuits";
 import { F } from '@unirep/utils'
+import prover from "../singletons/prover.mjs"
 
 const require = createRequire(import.meta.url);
 const UnirepAppABI = require("@zketh/contracts/abi/ZKEth.json");
@@ -59,7 +61,7 @@ const handleGameEnd = async (position, game, db, synchronizer) => {
 
 export default ({ wsApp, db, synchronizer }) => {
   wsApp.handle("game.playMove", async (data, send, next) => {
-    const { move, color, gameId } = data;
+    const { publicSignals, proof, gameId } = data;
     if (!gameId) {
       send("no game id supplied", 1);
       return;
@@ -73,8 +75,23 @@ export default ({ wsApp, db, synchronizer }) => {
       send(`no game found for id "${gameId}`, 1);
       return;
     }
+    {
+      const _proof = new BaseProof(publicSignals, proof)
+      await prover.verifyProof(
+        "signMove",
+        _proof.publicSignals,
+        _proof._snarkProof
+      );
+    }
     const position = new Position(game.position);
-    if (!position.play(move) || position.turn() != color) {
+
+    const expectedPlayerId = position.turn() === 'w' ? game.whitePlayerId : game.blackPlayerId
+    if (publicSignals[0] !== expectedPlayerId) {
+      send(`incorrect player id`, 1)
+      return
+    }
+    const move = Buffer.from(BigInt(publicSignals[1]).toString(16), 'hex').toString('utf8')
+    if (!position.play(move)) {
       // move is illegal or string is invalid
       console.log("illegal move");
       send(`invalid or illegal move ${move}`, 1);

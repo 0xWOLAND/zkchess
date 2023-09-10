@@ -7,7 +7,7 @@ import { provider, UNIREP_ADDRESS, APP_ADDRESS, SERVER } from '../config'
 import prover from './prover'
 import { fromRpcSig, hashPersonalMessage, ecrecover } from '@ethereumjs/util'
 import BN from 'bn.js'
-import poseidon from 'poseidon-lite'
+import { poseidon1 } from 'poseidon-lite'
 import { TypedDataUtils } from '@metamask/eth-sig-util'
 import { IndexedDBConnector, MemoryConnector } from 'anondb/web'
 import { constructSchema } from 'anondb/types'
@@ -131,6 +131,27 @@ export default class Auth {
     await this.userState.waitForSync()
     this.hasSignedUp = await this.userState.hasSignedUp()
     await this.loadRating()
+  }
+
+  async signMove(move, epoch) {
+    const data = await this.userState.getData()
+    const id = localStorage.getItem('id')
+    const identity = new Identity(id)
+    const moveData = `0x${Buffer.from(move, 'utf8').toString('hex')}`
+
+    const circuitInputs = {
+      data,
+      epoch,
+      attester_id: APP_ADDRESS,
+      identity_secret: identity.secret,
+      move_hash: moveData
+    }
+    const { proof, publicSignals } = await prover.genProofAndPublicSignals('signMove', circuitInputs)
+    const moveProof = new BaseProof(publicSignals, proof)
+    return {
+      publicSignals: moveProof.publicSignals.map(v => v.toString()),
+      proof: moveProof.proof.map(v => v.toString()),
+    }
   }
 
   async proveElo() {

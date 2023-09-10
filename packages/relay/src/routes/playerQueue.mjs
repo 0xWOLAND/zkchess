@@ -12,7 +12,6 @@ export default ({ wsApp, db, synchronizer }) => {
 
   wsApp.handle("queue.join", async (data, send, next) => {
     const { ustProof: _ustProof, eloProof } = data;
-    const { prover } = synchronizer;
 
     // TODO: verify the history root being proven
     const ustProof = new UserStateTransitionProof(
@@ -26,6 +25,7 @@ export default ({ wsApp, db, synchronizer }) => {
     );
 
     {
+      console.log(eloProof)
       const proof = new BaseProof(eloProof.publicSignals, eloProof.proof);
       await prover.verifyProof(
         "proveElo",
