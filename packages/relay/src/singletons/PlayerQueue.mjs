@@ -1,5 +1,6 @@
 import { UserStateTransitionProof } from "@unirep/circuits";
 import TransactionManager from './TransactionManager.mjs'
+import { APP_ADDRESS } from '../config.mjs'
 
 class PlayerQueue {
   // string[]
@@ -7,6 +8,7 @@ class PlayerQueue {
     this.db = db;
     this.wsApp = wsApp;
     this.synchronizer = synchronizer
+    this.epochLength = this.synchronizer._attesterSettings[BigInt(APP_ADDRESS).toString()].epochLength
   }
 
   constructor() {
@@ -150,11 +152,14 @@ class PlayerQueue {
         }
       })
     })
+    const moveTimer = Math.floor(this.epochLength / 2) * 1000
     for (const { white, black } of gamePlayers) {
       const game = await this.db.create("Game", {
         whitePlayerId: white._id,
         blackPlayerId: black._id,
         startedAtEpoch: this.synchronizer.calcCurrentEpoch(),
+        whitePlayerTime: moveTimer,
+        blackPlayerTime: moveTimer,
       });
       this.wsApp.broadcast("newGame", {
         gameId: game._id,

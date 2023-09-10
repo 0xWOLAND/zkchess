@@ -85,7 +85,8 @@ export default ({ wsApp, db, synchronizer }) => {
     }
     const position = new Position(game.position);
 
-    const expectedPlayerId = position.turn() === 'w' ? game.whitePlayerId : game.blackPlayerId
+    const whiteToMove = position.turn() === 'w'
+    const expectedPlayerId = whiteToMove ? game.whitePlayerId : game.blackPlayerId
     if (publicSignals[0] !== expectedPlayerId) {
       send(`incorrect player id`, 1)
       return
@@ -99,13 +100,19 @@ export default ({ wsApp, db, synchronizer }) => {
     }
     const { outcome, black, white } = await handleGameEnd(position, game, db, synchronizer);
 
+    const now = +new Date()
+    const moveTime = now - game.lastMoveAt
+
     const n = await db.update("Game", {
       where: {
         _id: gameId,
       },
       update: {
         position: position.fen(),
-        lastMoveAt: +new Date(),
+        lastMoveAt: now,
+        ...(
+          whiteToMove ? { whitePlayerTime: game.whitePlayerTime - moveTime } :
+          {blackPlayerTime: game.blackPlayerTime - moveTime}),
         ...(outcome ? { outcome } : {}),
       },
     });

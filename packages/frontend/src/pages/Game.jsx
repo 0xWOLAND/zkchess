@@ -18,6 +18,8 @@ export default observer(() => {
       <div>active game: {game.activeGame?._id}</div>
       <div>white rating: {game.activeGame?.white?.rating} elo</div>
       <div>black rating: {game.activeGame?.black?.rating} elo</div>
+      <div>white timer: {game.activeGame?.whitePlayerTime}</div>
+      <div>black timer: {game.activeGame?.blackPlayerTime}</div>
       <Chessboard
         flipped={game.color === "b"}
         interactionMode="playMoves"

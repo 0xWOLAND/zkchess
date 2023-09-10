@@ -25,6 +25,14 @@ export default [
         type: "String",
       },
       {
+        name: "blackPlayerTime",
+        type: "Int"
+      },
+      {
+        name: "whitePlayerTime",
+        type: "Int"
+      },
+      {
         name: 'startedAtEpoch',
         type: "Int"
       },
